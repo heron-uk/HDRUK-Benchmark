@@ -1,0 +1,20 @@
+
+db_name <- "..."
+
+con <- DBI::dbConnect("...")
+
+cdmSchema <- "..."
+writeSchema <- "..."
+
+prefix <- "..."
+
+
+cdm <- CDMConnector::cdmFromCon(con = con,
+                                cdmSchema = cdmSchema,
+                                writeSchema = c(schema = writeSchema,
+                                                prefix = prefix))
+
+
+
+
+source("RunBenchmark.R")
