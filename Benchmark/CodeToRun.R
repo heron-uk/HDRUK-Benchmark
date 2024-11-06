@@ -17,4 +17,6 @@ cdm <- CDMConnector::cdmFromCon(con = con,
 
 
 
-source("RunBenchmark.R")
+source("R/RunBenchmark.R")
+
+

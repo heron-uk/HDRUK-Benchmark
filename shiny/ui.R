@@ -16,60 +16,509 @@ ui <- bslib::page_navbar(
   ),
   bslib::nav_panel(
     title = "Summary",
-    icon = shiny::icon("file-alt")
-    # OmopViewer::cardSummary(data)
+    icon = shiny::icon("file-alt"),
+    OmopViewer::cardSummary(data)
   ),
   bslib::nav_panel(
-    title = "Timings",
-    icon = shiny::icon("clipboard-list"),
-    bslib::navset_card_tab(
-      bslib::nav_panel(
-        title = "Tidy",
-        bslib::card(
-          full_screen = TRUE,
-          bslib::layout_sidebar(
-            sidebar = bslib::sidebar(
-              shiny::selectizeInput(
-                inputId = "timings_tidy_columns",
-                label = "Columns",
-                choices = colnames(data),
-                selected = colnames(data),
-                multiple = TRUE,
-                options = list(plugins = "remove_button")
-              ),
-              position = "right"
+    title = "Summarise general benchmark",
+    bslib::layout_sidebar(
+      sidebar = bslib::sidebar(
+        bslib::accordion(
+          bslib::accordion_panel(
+            title = "Information",
+            icon = shiny::icon("info"),
+            shiny::p("")
+          ),
+          bslib::accordion_panel(
+            title = "grouping",
+            shiny::selectizeInput(
+              inputId = "summarise_general_benchmark_grouping_cdm_name",
+              label = "Cdm name",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
             ),
-            DT::dataTableOutput("timings_tidy")
+            shiny::selectizeInput(
+              inputId = "summarise_general_benchmark_grouping_task",
+              label = "Task",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_general_benchmark_grouping_iteration",
+              label = "Iteration",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_general_benchmark_grouping_dbms",
+              label = "Dbms",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_general_benchmark_grouping_person_n",
+              label = "Person n",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            )
+          ),
+          bslib::accordion_panel(
+            title = "Variables",
+            shiny::selectizeInput(
+              inputId = "summarise_general_benchmark_variable_name",
+              label = "Variable name",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            )
+          ),
+          bslib::accordion_panel(
+            title = "Estimates",
+            shiny::selectizeInput(
+              inputId = "summarise_general_benchmark_estimate_name",
+              label = "Estimate name",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            )
           )
         )
-      ), 
-      bslib::nav_panel(
-        title = "Plot",
-        icon = shiny::icon("clipboard-list"),
-        bslib::card(
-          full_screen = TRUE,
-          bslib::layout_sidebar(
-            sidebar = bslib::sidebar(
-              shiny::selectInput(
-                inputId = "time_variable",
-                label = "Time taken",
-                choices = c("time_taken_secs", "time_taken_mins"),
-                selected = "time_taken_secs"
+      ),
+      bslib::navset_card_tab(
+        bslib::nav_panel(
+          title = "Tidy",
+          bslib::card(
+            full_screen = TRUE,
+            bslib::card_header(
+              bslib::popover(
+                shiny::icon("download"),
+                shiny::downloadButton(outputId = "summarise_general_benchmark_tidy_download", label = "Download csv")
               ),
-              shiny::selectInput(
-                inputId = "iteration_color",
-                label = "Iteration",
-                choices = unique(data$iteration),  # Assuming iteration is a column in your data
-                selected = unique(data$iteration)[1]
-              ),
-              shiny::radioButtons(
-                inputId = "plot_type",
-                label = "Select Plot Type",
-                choices = c("Bar Plot" = "bar", "Line Plot" = "line"),
-                selected = "bar"
-              )
+              class = "text-end"
             ),
-            shiny::plotOutput("timing_plot")
+            bslib::layout_sidebar(
+              sidebar = bslib::sidebar(
+                shiny::selectizeInput(
+                  inputId = "summarise_general_benchmark_tidy_columns",
+                  label = "Columns",
+                  choices = NULL,
+                  selected = NULL,
+                  multiple = TRUE,
+                  options = list(plugins = "remove_button")
+                ),
+                shiny::radioButtons(
+                  inputId = "summarise_general_benchmark_tidy_pivot",
+                  label = "Pivot estimates/variables",
+                  choices = c("none", "estimates", "estimates and variables"),
+                  selected = "none"
+                ),
+                position = "right"
+              ),
+              DT::dataTableOutput("summarise_general_benchmark_tidy")
+            )
+          )
+        ),
+        bslib::nav_panel(
+          title = "Formatted",
+          bslib::card(
+            full_screen = TRUE,
+            bslib::card_header(
+              bslib::popover(
+                shiny::icon("download"),
+                shiny::selectizeInput(
+                  inputId = "summarise_general_benchmark_gt_0_download_type",
+                  label = "File type",
+                  selected = "docx",
+                  choices = c("docx", "png", "pdf", "html"),
+                  multiple = FALSE
+                ),
+                shiny::downloadButton(outputId = "summarise_general_benchmark_gt_0_download", label = "Download")
+              ),
+              class = "text-end"
+            ),
+            bslib::layout_sidebar(
+              sidebar = bslib::sidebar(
+                sortable::bucket_list(
+                  header = NULL,
+                  sortable::add_rank_list(
+                    text = "none",
+                    labels = c("task", "iteration", "dbms", "person_n", "variable_name", "variable_level", "estimate_name"),
+                    input_id = "summarise_general_benchmark_gt_0_none"
+                  ),
+                  sortable::add_rank_list(
+                    text = "header",
+                    labels = "cdm_name",
+                    input_id = "summarise_general_benchmark_gt_0_header"
+                  ),
+                  sortable::add_rank_list(
+                    text = "group",
+                    labels = character(),
+                    input_id = "summarise_general_benchmark_gt_0_group"
+                  ),
+                  sortable::add_rank_list(
+                    text = "hide",
+                    labels = character(),
+                    input_id = "summarise_general_benchmark_gt_0_hide"
+                  )
+                ),
+                position = "right"
+              ),
+              gt::gt_output("summarise_general_benchmark_gt_0")
+            )
+          )
+        )
+      )
+    )
+  ),
+  bslib::nav_panel(
+    title = "Summarise incidence prevalence benchmark",
+    bslib::layout_sidebar(
+      sidebar = bslib::sidebar(
+        bslib::accordion(
+          bslib::accordion_panel(
+            title = "Information",
+            icon = shiny::icon("info"),
+            shiny::p("")
+          ),
+          bslib::accordion_panel(
+            title = "grouping",
+            shiny::selectizeInput(
+              inputId = "summarise_incidence_prevalence_benchmark_grouping_cdm_name",
+              label = "Cdm name",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_incidence_prevalence_benchmark_grouping_task",
+              label = "Task",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_incidence_prevalence_benchmark_grouping_iteration",
+              label = "Iteration",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_incidence_prevalence_benchmark_grouping_dbms",
+              label = "Dbms",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_incidence_prevalence_benchmark_grouping_person_n",
+              label = "Person n",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_incidence_prevalence_benchmark_grouping_min_observation_start",
+              label = "Min observation start",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_incidence_prevalence_benchmark_grouping_max_observation_end",
+              label = "Max observation end",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            )
+          ),
+          bslib::accordion_panel(
+            title = "Variables",
+            shiny::selectizeInput(
+              inputId = "summarise_incidence_prevalence_benchmark_variable_name",
+              label = "Variable name",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            )
+          ),
+          bslib::accordion_panel(
+            title = "Estimates",
+            shiny::selectizeInput(
+              inputId = "summarise_incidence_prevalence_benchmark_estimate_name",
+              label = "Estimate name",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            )
+          )
+        )
+      ),
+      bslib::navset_card_tab(
+        bslib::nav_panel(
+          title = "Tidy",
+          bslib::card(
+            full_screen = TRUE,
+            bslib::card_header(
+              bslib::popover(
+                shiny::icon("download"),
+                shiny::downloadButton(outputId = "summarise_incidence_prevalence_benchmark_tidy_download", label = "Download csv")
+              ),
+              class = "text-end"
+            ),
+            bslib::layout_sidebar(
+              sidebar = bslib::sidebar(
+                shiny::selectizeInput(
+                  inputId = "summarise_incidence_prevalence_benchmark_tidy_columns",
+                  label = "Columns",
+                  choices = NULL,
+                  selected = NULL,
+                  multiple = TRUE,
+                  options = list(plugins = "remove_button")
+                ),
+                shiny::radioButtons(
+                  inputId = "summarise_incidence_prevalence_benchmark_tidy_pivot",
+                  label = "Pivot estimates/variables",
+                  choices = c("none", "estimates", "estimates and variables"),
+                  selected = "none"
+                ),
+                position = "right"
+              ),
+              DT::dataTableOutput("summarise_incidence_prevalence_benchmark_tidy")
+            )
+          )
+        ),
+        bslib::nav_panel(
+          title = "Formatted",
+          bslib::card(
+            full_screen = TRUE,
+            bslib::card_header(
+              bslib::popover(
+                shiny::icon("download"),
+                shiny::selectizeInput(
+                  inputId = "summarise_incidence_prevalence_benchmark_gt_0_download_type",
+                  label = "File type",
+                  selected = "docx",
+                  choices = c("docx", "png", "pdf", "html"),
+                  multiple = FALSE
+                ),
+                shiny::downloadButton(outputId = "summarise_incidence_prevalence_benchmark_gt_0_download", label = "Download")
+              ),
+              class = "text-end"
+            ),
+            bslib::layout_sidebar(
+              sidebar = bslib::sidebar(
+                sortable::bucket_list(
+                  header = NULL,
+                  sortable::add_rank_list(
+                    text = "none",
+                    labels = c("task", "iteration", "dbms", "person_n", "min_observation_start", "max_observation_end", "variable_name", "variable_level", "estimate_name"),
+                    input_id = "summarise_incidence_prevalence_benchmark_gt_0_none"
+                  ),
+                  sortable::add_rank_list(
+                    text = "header",
+                    labels = "cdm_name",
+                    input_id = "summarise_incidence_prevalence_benchmark_gt_0_header"
+                  ),
+                  sortable::add_rank_list(
+                    text = "group",
+                    labels = character(),
+                    input_id = "summarise_incidence_prevalence_benchmark_gt_0_group"
+                  ),
+                  sortable::add_rank_list(
+                    text = "hide",
+                    labels = character(),
+                    input_id = "summarise_incidence_prevalence_benchmark_gt_0_hide"
+                  )
+                ),
+                position = "right"
+              ),
+              gt::gt_output("summarise_incidence_prevalence_benchmark_gt_0")
+            )
+          )
+        )
+      )
+    )
+  ),
+  bslib::nav_panel(
+    title = "Summarise cdm connector benchmark",
+    bslib::layout_sidebar(
+      sidebar = bslib::sidebar(
+        bslib::accordion(
+          bslib::accordion_panel(
+            title = "Information",
+            icon = shiny::icon("info"),
+            shiny::p("")
+          ),
+          bslib::accordion_panel(
+            title = "grouping",
+            shiny::selectizeInput(
+              inputId = "summarise_cdm_connector_benchmark_grouping_cdm_name",
+              label = "Cdm name",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_cdm_connector_benchmark_grouping_task",
+              label = "Task",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_cdm_connector_benchmark_grouping_iteration",
+              label = "Iteration",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_cdm_connector_benchmark_grouping_dbms",
+              label = "Dbms",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            ),
+            shiny::selectizeInput(
+              inputId = "summarise_cdm_connector_benchmark_grouping_person_n",
+              label = "Person n",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            )
+          ),
+          bslib::accordion_panel(
+            title = "Variables",
+            shiny::selectizeInput(
+              inputId = "summarise_cdm_connector_benchmark_variable_name",
+              label = "Variable name",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            )
+          ),
+          bslib::accordion_panel(
+            title = "Estimates",
+            shiny::selectizeInput(
+              inputId = "summarise_cdm_connector_benchmark_estimate_name",
+              label = "Estimate name",
+              choices = NULL,
+              selected = NULL,
+              multiple = TRUE,
+              options = list(plugins = "remove_button")
+            )
+          )
+        )
+      ),
+      bslib::navset_card_tab(
+        bslib::nav_panel(
+          title = "Tidy",
+          bslib::card(
+            full_screen = TRUE,
+            bslib::card_header(
+              bslib::popover(
+                shiny::icon("download"),
+                shiny::downloadButton(outputId = "summarise_cdm_connector_benchmark_tidy_download", label = "Download csv")
+              ),
+              class = "text-end"
+            ),
+            bslib::layout_sidebar(
+              sidebar = bslib::sidebar(
+                shiny::selectizeInput(
+                  inputId = "summarise_cdm_connector_benchmark_tidy_columns",
+                  label = "Columns",
+                  choices = NULL,
+                  selected = NULL,
+                  multiple = TRUE,
+                  options = list(plugins = "remove_button")
+                ),
+                shiny::radioButtons(
+                  inputId = "summarise_cdm_connector_benchmark_tidy_pivot",
+                  label = "Pivot estimates/variables",
+                  choices = c("none", "estimates", "estimates and variables"),
+                  selected = "none"
+                ),
+                position = "right"
+              ),
+              DT::dataTableOutput("summarise_cdm_connector_benchmark_tidy")
+            )
+          )
+        ),
+        bslib::nav_panel(
+          title = "Formatted",
+          bslib::card(
+            full_screen = TRUE,
+            bslib::card_header(
+              bslib::popover(
+                shiny::icon("download"),
+                shiny::selectizeInput(
+                  inputId = "summarise_cdm_connector_benchmark_gt_0_download_type",
+                  label = "File type",
+                  selected = "docx",
+                  choices = c("docx", "png", "pdf", "html"),
+                  multiple = FALSE
+                ),
+                shiny::downloadButton(outputId = "summarise_cdm_connector_benchmark_gt_0_download", label = "Download")
+              ),
+              class = "text-end"
+            ),
+            bslib::layout_sidebar(
+              sidebar = bslib::sidebar(
+                sortable::bucket_list(
+                  header = NULL,
+                  sortable::add_rank_list(
+                    text = "none",
+                    labels = c("task", "iteration", "dbms", "person_n", "variable_name", "variable_level", "estimate_name"),
+                    input_id = "summarise_cdm_connector_benchmark_gt_0_none"
+                  ),
+                  sortable::add_rank_list(
+                    text = "header",
+                    labels = "cdm_name",
+                    input_id = "summarise_cdm_connector_benchmark_gt_0_header"
+                  ),
+                  sortable::add_rank_list(
+                    text = "group",
+                    labels = character(),
+                    input_id = "summarise_cdm_connector_benchmark_gt_0_group"
+                  ),
+                  sortable::add_rank_list(
+                    text = "hide",
+                    labels = character(),
+                    input_id = "summarise_cdm_connector_benchmark_gt_0_hide"
+                  )
+                ),
+                position = "right"
+              ),
+              gt::gt_output("summarise_cdm_connector_benchmark_gt_0")
+            )
           )
         )
       )
@@ -106,7 +555,5 @@ ui <- bslib::page_navbar(
       shiny::strong("v0.1.0")
     )
   ),
-  bslib::nav_item(
-    bslib::input_dark_mode(id = "dark_mode", mode = "light")
-  )
+  bslib::nav_item(bslib::input_dark_mode(id = "dark_mode", mode = "light"))
 )

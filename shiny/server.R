@@ -6,77 +6,254 @@ server <- function(input, output, session) {
   output$download_raw <- shiny::downloadHandler(
     filename = "results.csv",
     content = function(file) {
-      write.csv(data, file = file)
+      OmopViewer::exportSummarisedResult(data, fileName = file)
     }
   )
-  
-   getTidyTimings <- shiny::reactive({
-  #   # Start with the raw data
-     res <- data
-  #   
-  #   pivot_columns <- input$timings_pivot
-  #   if (pivot_columns != "none") {
-  #     # Specify the columns for the pivot
-  #     vars <- c("task", "iteration")
-  #     
-  #     # Perform the pivot
-  #     res <- res |>
-  #       tidyr::pivot_wider(
-  #         names_from = iteration,  # Use 'iteration' for the new column names
-  #         values_from = time_taken_secs,  # Use 'time_taken_secs' for the values
-  #         values_fn = list(time_taken_secs = mean),  # Aggregate duplicate values
-  #         values_fill = list(time_taken_secs = 0)  # Fill missing values with 0 (or another value)
-  #       )
-  #   }
-  #   
-  #   # Return the processed data
-  #   res
-   })
-  # 
-  output$timings_tidy <- DT::renderDT({
+  shiny::observe({
+    choices <- OmopViewer::getChoices(data, flatten = TRUE)
+    for (k in seq_along(choices)) {
+      shiny::updateSelectizeInput(
+        session,
+        inputId = names(choices)[k],
+        choices = choices[[k]],
+        selected = choices[[k]],
+        server = TRUE
+      )
+    }
+  })
+  # summarise_general_benchmark -----
+  ## tidy summarise_general_benchmark -----
+  getTidyDataSummariseGeneralBenchmark <- shiny::reactive({
+    res <- data |>
+      OmopViewer::filterData("summarise_general_benchmark", input) |>
+      OmopViewer::tidyData()
+    
+    # columns to eliminate
+    colsEliminate <- colnames(res)
+    colsEliminate <- colsEliminate[!colsEliminate %in% c(
+      input$summarise_general_benchmark_tidy_columns, "variable_name", "variable_level",
+      "estimate_name", "estimate_type", "estimate_value"
+    )]
+    
+    # pivot
+    pivot <- input$summarise_general_benchmark_tidy_pivot
+    if (pivot != "none") {
+      vars <- switch(pivot,
+                     "estimates" = "estimate_name",
+                     "estimates and variables" = c("variable_name", "variable_level", "estimate_name")
+      )
+      res <- res |>
+        visOmopResults::pivotEstimates(pivotEstimatesBy = vars)
+    }
+    
+    res |>
+      dplyr::select(!dplyr::all_of(colsEliminate))
+  })
+  output$summarise_general_benchmark_tidy <- DT::renderDT({
     DT::datatable(
-      getTidyTimings(),
+      getTidyDataSummariseGeneralBenchmark(),
       options = list(scrollX = TRUE),
       rownames = FALSE
     )
   })
+  output$summarise_general_benchmark_tidy_download <- shiny::downloadHandler(
+    filename = "tidy_summarise_general_benchmark.csv",
+    content = function(file) {
+      getTidyDataSummariseGeneralBenchmark() |>
+        readr::write_csv(file = file)
+    }
+  )
+  ## output summarise_general_benchmark -----
+  ## output 0 -----
+  createOutput0 <- shiny::reactive({
+    result <- data |>
+      OmopViewer::filterData("summarise_general_benchmark", input)
+    OmopViewer::omopViewerTable(
+      result,
+      header = input$summarise_general_benchmark_gt_0_header,
+      group = input$summarise_general_benchmark_gt_0_group,
+      hide = input$summarise_general_benchmark_gt_0_hide
+    )
+  })
+  output$summarise_general_benchmark_gt_0 <- gt::render_gt({
+    createOutput0()
+  })
+  output$summarise_general_benchmark_gt_0_download <- shiny::downloadHandler(
+    filename = paste0("output_gt_summarise_general_benchmark.", input$summarise_general_benchmark_gt_0_download_type),
+    content = function(file) {
+      obj <- createOutput0()
+      gt::gtsave(data = obj, filename = file)
+    }
+  )
   
-  output$timing_plot <- shiny::renderPlot({
-    # Determine which time variable to plot
-    time_var <- input$time_variable
+  
+  # output$summarise_general_benchmark_plot <- shiny::renderPlot({
+  #   # Determine which time variable to plot
+  #   time_var <- input$summarise_general_benchmark_time_variable
+  #   
+  #   if (input$plot_type == "bar") {
+  #     ggplot2::ggplot(data, ggplot2::aes(x = data[,"task"], y = data[, time_var], fill = data[,"iteration"])) +
+  #       ggplot2::geom_bar(stat = "identity", position = "dodge") +
+  #       ggplot2::labs(
+  #         title = "Time Taken by Task (Bar Plot)",
+  #         x = "Task",
+  #         y = ifelse(time_var == "time_taken_secs", "Time Taken (Seconds)", "Time Taken (Minutes)"),
+  #         fill = "Iteration"
+  #       ) +
+  #       ggplot2::theme_minimal() +
+  #       ggplot2::theme(
+  #         axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 14),  # Increase x-axis label size
+  #         axis.title.x = ggplot2::element_text(size = 14),  # Increase x-axis title size
+  #         axis.title.y = ggplot2::element_text(size = 14)   # Increase y-axis title size
+  #       )
+  #   } else {
+  #     ggplot2::ggplot(data, ggplot2::aes(x = data[,"task"], y = data[, time_var], color = data[,"iteration"], group = data[,"iteration"])) +
+  #       ggplot2::geom_line() +
+  #       ggplot2::geom_point() +
+  #       ggplot2::labs(
+  #         title = "Time Taken by Task (Line Plot)",
+  #         x = "Task",
+  #         y = ifelse(time_var == "time_taken_secs", "Time Taken (Seconds)", "Time Taken (Minutes)"),
+  #         color = "Iteration"
+  #       ) +
+  #       ggplot2::theme_minimal() +
+  #       ggplot2::theme(
+  #         axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 14),  # Increase x-axis label size
+  #         axis.title.x = ggplot2::element_text(size = 14),  # Increase x-axis title size
+  #         axis.title.y = ggplot2::element_text(size = 14)   # Increase y-axis title size
+  #       )
+  #   }
+  #   
+  # })
+  
+  # summarise_incidence_prevalence_benchmark -----
+  ## tidy summarise_incidence_prevalence_benchmark -----
+  getTidyDataSummariseIncidencePrevalenceBenchmark <- shiny::reactive({
+    res <- data |>
+      OmopViewer::filterData("summarise_incidence_prevalence_benchmark", input) |>
+      OmopViewer::tidyData()
     
-    if (input$plot_type == "bar") {
-      ggplot2::ggplot(data, ggplot2::aes(x = data[,"task"], y = data[, time_var], fill = data[,"iteration"])) +
-        ggplot2::geom_bar(stat = "identity", position = "dodge") +
-        ggplot2::labs(
-          title = "Time Taken by Task (Bar Plot)",
-          x = "Task",
-          y = ifelse(time_var == "time_taken_secs", "Time Taken (Seconds)", "Time Taken (Minutes)"),
-          fill = "Iteration"
-        ) +
-        ggplot2::theme_minimal() +
-        ggplot2::theme(
-          axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 14),  # Increase x-axis label size
-          axis.title.x = ggplot2::element_text(size = 14),  # Increase x-axis title size
-          axis.title.y = ggplot2::element_text(size = 14)   # Increase y-axis title size
-        )
-    } else {
-      ggplot2::ggplot(data, ggplot2::aes(x = data[,"task"], y = data[, time_var], color = data[,"iteration"], group = data[,"iteration"])) +
-        ggplot2::geom_line() +
-        ggplot2::geom_point() +
-        ggplot2::labs(
-          title = "Time Taken by Task (Line Plot)",
-          x = "Task",
-          y = ifelse(time_var == "time_taken_secs", "Time Taken (Seconds)", "Time Taken (Minutes)"),
-          color = "Iteration"
-        ) +
-        ggplot2::theme_minimal() +
-        ggplot2::theme(
-          axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 14),  # Increase x-axis label size
-          axis.title.x = ggplot2::element_text(size = 14),  # Increase x-axis title size
-          axis.title.y = ggplot2::element_text(size = 14)   # Increase y-axis title size
-        )
+    # columns to eliminate
+    colsEliminate <- colnames(res)
+    colsEliminate <- colsEliminate[!colsEliminate %in% c(
+      input$summarise_incidence_prevalence_benchmark_tidy_columns, "variable_name", "variable_level",
+      "estimate_name", "estimate_type", "estimate_value"
+    )]
+    
+    # pivot
+    pivot <- input$summarise_incidence_prevalence_benchmark_tidy_pivot
+    if (pivot != "none") {
+      vars <- switch(pivot,
+                     "estimates" = "estimate_name",
+                     "estimates and variables" = c("variable_name", "variable_level", "estimate_name")
+      )
+      res <- res |>
+        visOmopResults::pivotEstimates(pivotEstimatesBy = vars)
     }
     
+    res |>
+      dplyr::select(!dplyr::all_of(colsEliminate))
   })
+  output$summarise_incidence_prevalence_benchmark_tidy <- DT::renderDT({
+    DT::datatable(
+      getTidyDataSummariseIncidencePrevalenceBenchmark(),
+      options = list(scrollX = TRUE),
+      rownames = FALSE
+    )
+  })
+  output$summarise_incidence_prevalence_benchmark_tidy_download <- shiny::downloadHandler(
+    filename = "tidy_summarise_incidence_prevalence_benchmark.csv",
+    content = function(file) {
+      getTidyDataSummariseIncidencePrevalenceBenchmark() |>
+        readr::write_csv(file = file)
+    }
+  )
+  ## output summarise_incidence_prevalence_benchmark -----
+  ## output 0 -----
+  createOutput0 <- shiny::reactive({
+    result <- data |>
+      OmopViewer::filterData("summarise_incidence_prevalence_benchmark", input)
+    OmopViewer::omopViewerTable(
+      result,
+      header = input$summarise_incidence_prevalence_benchmark_gt_0_header,
+      group = input$summarise_incidence_prevalence_benchmark_gt_0_group,
+      hide = input$summarise_incidence_prevalence_benchmark_gt_0_hide
+    )
+  })
+  output$summarise_incidence_prevalence_benchmark_gt_0 <- gt::render_gt({
+    createOutput0()
+  })
+  output$summarise_incidence_prevalence_benchmark_gt_0_download <- shiny::downloadHandler(
+    filename = paste0("output_gt_summarise_incidence_prevalence_benchmark.", input$summarise_incidence_prevalence_benchmark_gt_0_download_type),
+    content = function(file) {
+      obj <- createOutput0()
+      gt::gtsave(data = obj, filename = file)
+    }
+  )
+  
+  
+  # summarise_cdm_connector_benchmark -----
+  ## tidy summarise_cdm_connector_benchmark -----
+  getTidyDataSummariseCdmConnectorBenchmark <- shiny::reactive({
+    res <- data |>
+      OmopViewer::filterData("summarise_cdm_connector_benchmark", input) |>
+      OmopViewer::tidyData()
+    
+    # columns to eliminate
+    colsEliminate <- colnames(res)
+    colsEliminate <- colsEliminate[!colsEliminate %in% c(
+      input$summarise_cdm_connector_benchmark_tidy_columns, "variable_name", "variable_level",
+      "estimate_name", "estimate_type", "estimate_value"
+    )]
+    
+    # pivot
+    pivot <- input$summarise_cdm_connector_benchmark_tidy_pivot
+    if (pivot != "none") {
+      vars <- switch(pivot,
+                     "estimates" = "estimate_name",
+                     "estimates and variables" = c("variable_name", "variable_level", "estimate_name")
+      )
+      res <- res |>
+        visOmopResults::pivotEstimates(pivotEstimatesBy = vars)
+    }
+    
+    res |>
+      dplyr::select(!dplyr::all_of(colsEliminate))
+  })
+  output$summarise_cdm_connector_benchmark_tidy <- DT::renderDT({
+    DT::datatable(
+      getTidyDataSummariseCdmConnectorBenchmark(),
+      options = list(scrollX = TRUE),
+      rownames = FALSE
+    )
+  })
+  output$summarise_cdm_connector_benchmark_tidy_download <- shiny::downloadHandler(
+    filename = "tidy_summarise_cdm_connector_benchmark.csv",
+    content = function(file) {
+      getTidyDataSummariseCdmConnectorBenchmark() |>
+        readr::write_csv(file = file)
+    }
+  )
+  ## output summarise_cdm_connector_benchmark -----
+  ## output 0 -----
+  createOutput0 <- shiny::reactive({
+    result <- data |>
+      OmopViewer::filterData("summarise_cdm_connector_benchmark", input)
+    OmopViewer::omopViewerTable(
+      result,
+      header = input$summarise_cdm_connector_benchmark_gt_0_header,
+      group = input$summarise_cdm_connector_benchmark_gt_0_group,
+      hide = input$summarise_cdm_connector_benchmark_gt_0_hide
+    )
+  })
+  output$summarise_cdm_connector_benchmark_gt_0 <- gt::render_gt({
+    createOutput0()
+  })
+  output$summarise_cdm_connector_benchmark_gt_0_download <- shiny::downloadHandler(
+    filename = paste0("output_gt_summarise_cdm_connector_benchmark.", input$summarise_cdm_connector_benchmark_gt_0_download_type),
+    content = function(file) {
+      obj <- createOutput0()
+      gt::gtsave(data = obj, filename = file)
+    }
+  )
 }
