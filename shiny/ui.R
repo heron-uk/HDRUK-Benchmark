@@ -178,8 +178,73 @@ ui <- bslib::page_navbar(
               gt::gt_output("summarise_general_benchmark_gt_0")
             )
           )
+        ),
+      bslib::nav_panel(
+        title = "Plot",
+        bslib::card(
+          full_screen = TRUE,
+          bslib::card_header(
+            bslib::popover(
+              shiny::icon("download"),
+              shiny::numericInput(
+                inputId = "summarise_general_benchmark_ggplot2_1_download_width",
+                label = "Width",
+                value = 15
+              ),
+              shiny::numericInput(
+                inputId = "summarise_general_benchmark_ggplot2_1_download_height",
+                label = "Height",
+                value = 10
+              ),
+              shiny::selectizeInput(
+                inputId = "summarise_general_benchmark_ggplot2_1_download_units",
+                label = "Units",
+                selected = "cm",
+                choices = c("px", "cm", "inch"),
+                multiple = FALSE
+              ),
+              shiny::numericInput(
+                inputId = "summarise_general_benchmark_ggplot2_1_download_dpi",
+                label = "dpi",
+                value = 300
+              ),
+              shiny::downloadButton(outputId = "summarise_general_benchmark_ggplot2_1_download", label = "Download")
+            ),
+            class = "text-end"
+          ),
+          bslib::layout_sidebar(
+            sidebar = bslib::sidebar(
+              shiny::selectizeInput(
+                inputId = "summarise_general_benchmark_ggplot2_1_colour",
+                label = "Colour",
+                selected = "cdm_name",
+                multiple = TRUE,
+                choices = c("cdm_name", "iteration", "dbms"),
+                options = list(plugins = "remove_button")
+              ),
+              shiny::selectizeInput(
+                inputId = "summarise_general_benchmark_ggplot2_1_facet",
+                label = "Facet",
+                selected = "cdm_name",
+                multiple = TRUE,
+                choices = c("cdm_name", "iteration", "dbms"),
+                options = list(plugins = "remove_button")
+              ),
+              shiny::selectizeInput(
+                inputId = "summarise_general_benchmark_ggplot2_1_plotType",
+                label = "plotType",
+                selected = "barplot",
+                multiple = ,
+                choices = c("barplot", "line"),
+                options = list(plugins = "remove_button")
+              ),
+              position = "right"
+            ),
+            shiny::plotOutput("summarise_general_benchmark_ggplot2_1")
+          )
         )
       )
+  )
     )
   ),
   bslib::nav_panel(
@@ -357,6 +422,71 @@ ui <- bslib::page_navbar(
               gt::gt_output("summarise_incidence_prevalence_benchmark_gt_0")
             )
           )
+        ), 
+        bslib::nav_panel(
+          title = "Plot",
+          bslib::card(
+            full_screen = TRUE,
+            bslib::card_header(
+              bslib::popover(
+                shiny::icon("download"),
+                shiny::numericInput(
+                  inputId = "summarise_incidence_prevalence_benchmark_ggplot2_1_download_width",
+                  label = "Width",
+                  value = 15
+                ),
+                shiny::numericInput(
+                  inputId = "summarise_incidence_prevalence_benchmark_ggplot2_1_download_height",
+                  label = "Height",
+                  value = 10
+                ),
+                shiny::selectizeInput(
+                  inputId = "summarise_incidence_prevalence_benchmark_ggplot2_1_download_units",
+                  label = "Units",
+                  selected = "cm",
+                  choices = c("px", "cm", "inch"),
+                  multiple = FALSE
+                ),
+                shiny::numericInput(
+                  inputId = "summarise_incidence_prevalence_benchmark_ggplot2_1_download_dpi",
+                  label = "dpi",
+                  value = 300
+                ),
+                shiny::downloadButton(outputId = "summarise_incidence_prevalence_benchmark_ggplot2_1_download", label = "Download")
+              ),
+              class = "text-end"
+            ),
+            bslib::layout_sidebar(
+              sidebar = bslib::sidebar(
+                shiny::selectizeInput(
+                  inputId = "summarise_incidence_prevalence_benchmark_ggplot2_1_colour",
+                  label = "Colour",
+                  selected = "cdm_name",
+                  multiple = TRUE,
+                  choices = c("cdm_name", "iteration", "dbms"),
+                  options = list(plugins = "remove_button")
+                ),
+                shiny::selectizeInput(
+                  inputId = "summarise_incidence_prevalence_benchmark_ggplot2_1_facet",
+                  label = "Facet",
+                  selected = "cdm_name",
+                  multiple = TRUE,
+                  choices = c("cdm_name", "iteration", "dbms"),
+                  options = list(plugins = "remove_button")
+                ),
+                shiny::selectizeInput(
+                  inputId = "summarise_incidence_prevalence_benchmark_ggplot2_1_plotType",
+                  label = "plotType",
+                  selected = "barplot",
+                  multiple = ,
+                  choices = c("barplot", "line"),
+                  options = list(plugins = "remove_button")
+                ),
+                position = "right"
+              ),
+              shiny::plotOutput("summarise_incidence_prevalence_benchmark_ggplot2_1")
+            )
+          )
         )
       )
     )
@@ -518,6 +648,71 @@ ui <- bslib::page_navbar(
                 position = "right"
               ),
               gt::gt_output("summarise_cdm_connector_benchmark_gt_0")
+            )
+          )
+        ),
+        bslib::nav_panel(
+          title = "Plot",
+          bslib::card(
+            full_screen = TRUE,
+            bslib::card_header(
+              bslib::popover(
+                shiny::icon("download"),
+                shiny::numericInput(
+                  inputId = "summarise_cdm_connector_benchmark_ggplot2_1_download_width",
+                  label = "Width",
+                  value = 15
+                ),
+                shiny::numericInput(
+                  inputId = "summarise_cdm_connector_benchmark_ggplot2_1_download_height",
+                  label = "Height",
+                  value = 10
+                ),
+                shiny::selectizeInput(
+                  inputId = "summarise_cdm_connector_benchmark_ggplot2_1_download_units",
+                  label = "Units",
+                  selected = "cm",
+                  choices = c("px", "cm", "inch"),
+                  multiple = FALSE
+                ),
+                shiny::numericInput(
+                  inputId = "summarise_cdm_connector_benchmark_ggplot2_1_download_dpi",
+                  label = "dpi",
+                  value = 300
+                ),
+                shiny::downloadButton(outputId = "summarise_cdm_connector_benchmark_ggplot2_1_download", label = "Download")
+              ),
+              class = "text-end"
+            ),
+            bslib::layout_sidebar(
+              sidebar = bslib::sidebar(
+                shiny::selectizeInput(
+                  inputId = "summarise_cdm_connector_benchmark_ggplot2_1_colour",
+                  label = "Colour",
+                  selected = "cdm_name",
+                  multiple = TRUE,
+                  choices = c("cdm_name", "iteration", "dbms"),
+                  options = list(plugins = "remove_button")
+                ),
+                shiny::selectizeInput(
+                  inputId = "summarise_cdm_connector_benchmark_ggplot2_1_facet",
+                  label = "Facet",
+                  selected = "cdm_name",
+                  multiple = TRUE,
+                  choices = c("cdm_name", "iteration", "dbms"),
+                  options = list(plugins = "remove_button")
+                ),
+                shiny::selectizeInput(
+                  inputId = "summarise_cdm_connector_benchmark_ggplot2_1_plotType",
+                  label = "plotType",
+                  selected = "barplot",
+                  multiple = ,
+                  choices = c("barplot", "line"),
+                  options = list(plugins = "remove_button")
+                ),
+                position = "right"
+              ),
+              shiny::plotOutput("summarise_cdm_connector_benchmark_ggplot2_1")
             )
           )
         )

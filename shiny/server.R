@@ -87,44 +87,48 @@ server <- function(input, output, session) {
   )
   
   
-  # output$summarise_general_benchmark_plot <- shiny::renderPlot({
-  #   # Determine which time variable to plot
-  #   time_var <- input$summarise_general_benchmark_time_variable
-  #   
-  #   if (input$plot_type == "bar") {
-  #     ggplot2::ggplot(data, ggplot2::aes(x = data[,"task"], y = data[, time_var], fill = data[,"iteration"])) +
-  #       ggplot2::geom_bar(stat = "identity", position = "dodge") +
-  #       ggplot2::labs(
-  #         title = "Time Taken by Task (Bar Plot)",
-  #         x = "Task",
-  #         y = ifelse(time_var == "time_taken_secs", "Time Taken (Seconds)", "Time Taken (Minutes)"),
-  #         fill = "Iteration"
-  #       ) +
-  #       ggplot2::theme_minimal() +
-  #       ggplot2::theme(
-  #         axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 14),  # Increase x-axis label size
-  #         axis.title.x = ggplot2::element_text(size = 14),  # Increase x-axis title size
-  #         axis.title.y = ggplot2::element_text(size = 14)   # Increase y-axis title size
-  #       )
-  #   } else {
-  #     ggplot2::ggplot(data, ggplot2::aes(x = data[,"task"], y = data[, time_var], color = data[,"iteration"], group = data[,"iteration"])) +
-  #       ggplot2::geom_line() +
-  #       ggplot2::geom_point() +
-  #       ggplot2::labs(
-  #         title = "Time Taken by Task (Line Plot)",
-  #         x = "Task",
-  #         y = ifelse(time_var == "time_taken_secs", "Time Taken (Seconds)", "Time Taken (Minutes)"),
-  #         color = "Iteration"
-  #       ) +
-  #       ggplot2::theme_minimal() +
-  #       ggplot2::theme(
-  #         axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 14),  # Increase x-axis label size
-  #         axis.title.x = ggplot2::element_text(size = 14),  # Increase x-axis title size
-  #         axis.title.y = ggplot2::element_text(size = 14)   # Increase y-axis title size
-  #       )
-  #   }
-  #   
-  # })
+createOutput1 <- shiny::reactive({
+result <- data |>
+ OmopViewer::filterData("summarise_general_benchmark", input)
+
+  
+  if (input$summarise_general_benchmark_ggplot2_1_plotType == "barplot") {
+    visOmopResults::barPlot(result, x = "task", y = input$summarise_general_benchmark_estimate_name,
+                            facet = input$summarise_general_benchmark_ggplot2_1_facet,
+                            colour = input$summarise_general_benchmark_ggplot2_1_colour) +
+      ggplot2::theme(
+        axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10))
+      
+  } else if (input$summarise_general_benchmark_ggplot2_1_plotType == "line") {
+    visOmopResults::scatterPlot(result, x = "task", y = input$summarise_general_benchmark_estimate_name,
+                                facet = input$summarise_general_benchmark_ggplot2_1_facet,
+                                colour = input$summarise_general_benchmark_ggplot2_1_colour,
+                                line = TRUE, point = TRUE, ribbon = FALSE) +
+      ggplot2::theme(
+        axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10) )
+  } else {
+    NULL  # Return NULL if plot type is invalid to avoid errors
+  }
+})
+
+
+output$summarise_general_benchmark_ggplot2_1 <- shiny::renderPlot({
+  createOutput1()
+})
+output$summarise_general_benchmark_ggplot2_1_download <- shiny::downloadHandler(
+  filename = paste0("output_ggplot2_summarise_general_benchmark", ".png"),
+  content = function(file) {
+    obj <- createOutput1()
+    ggplot2::ggsave(
+      filename = file,
+      plot = obj,
+      width = as.numeric(input$summarise_general_benchmark_ggplot2_1_download_width),
+      height = as.numeric(input$summarise_general_benchmark_ggplot2_1_download_height),
+      units = input$summarise_general_benchmark_ggplot2_1_download_units,
+      dpi = as.numeric(input$summarise_general_benchmark_ggplot2_1_download_dpi)
+    )
+  }
+)
   
   # summarise_incidence_prevalence_benchmark -----
   ## tidy summarise_incidence_prevalence_benchmark -----
@@ -188,6 +192,48 @@ server <- function(input, output, session) {
     content = function(file) {
       obj <- createOutput0()
       gt::gtsave(data = obj, filename = file)
+    }
+  )
+  
+  createOutput1 <- shiny::reactive({
+    result <- data |>
+      OmopViewer::filterData("summarise_incidence_prevalence_benchmark", input)
+    
+    
+    if (input$summarise_incidence_prevalence_benchmark_ggplot2_1_plotType == "barplot") {
+      visOmopResults::barPlot(result, x = "task", y = input$summarise_incidence_prevalence_benchmark_estimate_name,
+                              facet = input$summarise_incidence_prevalence_benchmark_ggplot2_1_facet,
+                              colour = input$summarise_incidence_prevalence_benchmark_ggplot2_1_colour) +
+        ggplot2::theme(
+          axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10))
+      
+    } else if (input$summarise_incidence_prevalence_benchmark_ggplot2_1_plotType == "line") {
+      visOmopResults::scatterPlot(result, x = "task", y = input$summarise_incidence_prevalence_benchmark_estimate_name,
+                                  facet = input$summarise_incidence_prevalence_benchmark_ggplot2_1_facet,
+                                  colour = input$summarise_incidence_prevalence_benchmark_ggplot2_1_colour,
+                                  line = TRUE, point = TRUE, ribbon = FALSE) +
+        ggplot2::theme(
+          axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10) )
+    } else {
+      NULL  # Return NULL if plot type is invalid to avoid errors
+    }
+  })
+
+  output$summarise_incidence_prevalence_benchmark_ggplot2_1 <- shiny::renderPlot({
+    createOutput1()
+  })
+  output$summarise_incidence_prevalence_benchmark_ggplot2_1_download <- shiny::downloadHandler(
+    filename = paste0("output_ggplot2_summarise_incidence_prevalence_benchmark", ".png"),
+    content = function(file) {
+      obj <- createOutput1()
+      ggplot2::ggsave(
+        filename = file,
+        plot = obj,
+        width = as.numeric(input$summarise_incidence_prevalence_benchmark_ggplot2_1_download_width),
+        height = as.numeric(input$summarise_incidence_prevalence_benchmark_ggplot2_1_download_height),
+        units = input$summarise_incidence_prevalence_benchmark_ggplot2_1_download_units,
+        dpi = as.numeric(input$summarise_incidence_prevalence_benchmark_ggplot2_1_download_dpi)
+      )
     }
   )
   
@@ -256,4 +302,47 @@ server <- function(input, output, session) {
       gt::gtsave(data = obj, filename = file)
     }
   )
+  
+  createOutput1 <- shiny::reactive({
+    result <- data |>
+      OmopViewer::filterData("summarise_cdm_connector_benchmark", input)
+    
+    
+    if (input$summarise_cdm_connector_benchmark_ggplot2_1_plotType == "barplot") {
+      visOmopResults::barPlot(result, x = "task", y = input$summarise_cdm_connector_benchmark_estimate_name,
+                              facet = input$summarise_cdm_connector_benchmark_ggplot2_1_facet,
+                              colour = input$summarise_cdm_connector_benchmark_ggplot2_1_colour) +
+        ggplot2::theme(
+          axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10))
+      
+    } else if (input$summarise_cdm_connector_benchmark_ggplot2_1_plotType == "line") {
+      visOmopResults::scatterPlot(result, x = "task", y = input$summarise_cdm_connector_benchmark_estimate_name,
+                                  facet = input$summarise_cdm_connector_benchmark_ggplot2_1_facet,
+                                  colour = input$summarise_cdm_connector_benchmark_ggplot2_1_colour,
+                                  line = TRUE, point = TRUE, ribbon = FALSE) +
+        ggplot2::theme(
+          axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10) )
+    } else {
+      NULL  # Return NULL if plot type is invalid to avoid errors
+    }
+  })
+  
+  output$summarise_cdm_connector_benchmark_ggplot2_1 <- shiny::renderPlot({
+    createOutput1()
+  })
+  output$summarise_cdm_connector_benchmark_ggplot2_1_download <- shiny::downloadHandler(
+    filename = paste0("output_ggplot2_summarise_cdm_connector_benchmark", ".png"),
+    content = function(file) {
+      obj <- createOutput1()
+      ggplot2::ggsave(
+        filename = file,
+        plot = obj,
+        width = as.numeric(input$summarise_cdm_connector_benchmark_ggplot2_1_download_width),
+        height = as.numeric(input$summarise_cdm_connector_benchmark_ggplot2_1_download_height),
+        units = input$summarise_cdm_connector_benchmark_ggplot2_1_download_units,
+        dpi = as.numeric(input$summarise_cdm_connector_benchmark_ggplot2_1_download_dpi)
+      )
+    }
+  )
+  
 }
