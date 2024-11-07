@@ -201,10 +201,10 @@ cdmConnectorBenchmark <- function(cdm, iterations){
 
   res <- res |>
     tidyr::pivot_longer(
-      cols = c(.data$time_taken_secs, .data$time_taken_mins),
+      cols = c(time_taken_secs, time_taken_mins),
       names_to = "estimate_name",
       values_to = "estimate_value",
-      names_transform = list(estimate_name = ~ case_when(
+      names_transform = list(estimate_name = ~ dplyr::case_when(
         . == "time_taken_secs" ~ "time_seconds",
         . == "time_taken_mins" ~ "time_minutes"
       ))

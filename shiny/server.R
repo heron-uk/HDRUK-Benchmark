@@ -195,10 +195,10 @@ output$summarise_general_benchmark_ggplot2_1_download <- shiny::downloadHandler(
     }
   )
   
-  createOutput1 <- shiny::reactive({
+  createOutput3 <- shiny::reactive({
     result <- data |>
       OmopViewer::filterData("summarise_incidence_prevalence_benchmark", input)
-    
+
     
     if (input$summarise_incidence_prevalence_benchmark_ggplot2_1_plotType == "barplot") {
       visOmopResults::barPlot(result, x = "task", y = input$summarise_incidence_prevalence_benchmark_estimate_name,
@@ -220,12 +220,12 @@ output$summarise_general_benchmark_ggplot2_1_download <- shiny::downloadHandler(
   })
 
   output$summarise_incidence_prevalence_benchmark_ggplot2_1 <- shiny::renderPlot({
-    createOutput1()
+    createOutput3()
   })
   output$summarise_incidence_prevalence_benchmark_ggplot2_1_download <- shiny::downloadHandler(
     filename = paste0("output_ggplot2_summarise_incidence_prevalence_benchmark", ".png"),
     content = function(file) {
-      obj <- createOutput1()
+      obj <- createOutput3()
       ggplot2::ggsave(
         filename = file,
         plot = obj,
@@ -303,7 +303,7 @@ output$summarise_general_benchmark_ggplot2_1_download <- shiny::downloadHandler(
     }
   )
   
-  createOutput1 <- shiny::reactive({
+  createOutput2<- shiny::reactive({
     result <- data |>
       OmopViewer::filterData("summarise_cdm_connector_benchmark", input)
     
@@ -328,12 +328,12 @@ output$summarise_general_benchmark_ggplot2_1_download <- shiny::downloadHandler(
   })
   
   output$summarise_cdm_connector_benchmark_ggplot2_1 <- shiny::renderPlot({
-    createOutput1()
+    createOutput2()
   })
   output$summarise_cdm_connector_benchmark_ggplot2_1_download <- shiny::downloadHandler(
     filename = paste0("output_ggplot2_summarise_cdm_connector_benchmark", ".png"),
     content = function(file) {
-      obj <- createOutput1()
+      obj <- createOutput2()
       ggplot2::ggsave(
         filename = file,
         plot = obj,
