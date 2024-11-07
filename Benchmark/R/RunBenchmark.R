@@ -15,11 +15,15 @@ omopgenerics::exportSummarisedResult(result, path = here::here("Results"), fileN
 cdm_disconnect(cdm)
 
 # Zip the results
-files_to_zip <- list.files(here::here("Results"))
+results_dir <- here::here("Results")
+if (!dir.exists(results_dir)) {
+  dir.create(results_dir, recursive = TRUE)
+}
+files_to_zip <- list.files(results_dir)
 files_to_zip <- files_to_zip[stringr::str_detect(files_to_zip, db_name)]
 
 zip::zip(zipfile = file.path(paste0(
-  here::here("Results"), "/results_", db_name, ".zip"
+  results_dir, "/results_", db_name, ".zip"
 )),
 files = files_to_zip,
-root = here::here("Results"))
+root = results_dir)

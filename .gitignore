@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-Benchmark/Results/
+Benchmark/Results/*.csv
 .DS_Store
-shiny/data/
+shiny/data/*.csv
+
