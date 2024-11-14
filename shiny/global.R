@@ -26,5 +26,4 @@ for(i in seq_along(results_file)){
   
 }
 data <- dplyr::bind_rows(results) 
- data
- 
+data

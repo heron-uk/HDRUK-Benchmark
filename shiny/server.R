@@ -129,6 +129,53 @@ output$summarise_general_benchmark_ggplot2_1_download <- shiny::downloadHandler(
     )
   }
 )
+
+createOutput5 <- shiny::reactive({
+  result <- data |>
+    OmopViewer::filterData("summarise_general_benchmark", input) |>
+    visOmopResults::splitAdditional() |>
+    dplyr::mutate(person_n = as.numeric(.data$person_n)) |>
+    visOmopResults::splitGroup() |>
+    dplyr::mutate(estimate_value = as.numeric(.data$estimate_value)) |>
+    visOmopResults::pivotEstimates()
+  
+  ggplot2::ggplot(result, 
+                  ggplot2::aes(x = person_n, 
+                               y = .data[[input$summarise_general_benchmark_estimate_name]], 
+                               color = cdm_name)) +
+    ggplot2::geom_point() +
+    ggplot2::facet_wrap(~ task) +
+    ggplot2::labs(
+      x = "Person Count",
+      y = input$summarise_general_benchmark_estimate_name,
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      legend.position = "bottom",
+      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10)
+    )
+})
+
+output$summarise_general_benchmark_ggplot2_5 <- shiny::renderPlot({
+  createOutput5()
+})
+
+output$summarise_general_benchmark_ggplot2_5_download <- shiny::downloadHandler(
+  filename = function() {
+    paste0("output_ggplot2_size_summarise_general_benchmark", ".png")
+  },
+  content = function(file) {
+    ggplot2::ggsave(
+      filename = file,
+      plot = createOutput5(),
+      width = as.numeric(input$summarise_general_benchmark_ggplot2_5_download_width),
+      height = as.numeric(input$summarise_general_benchmark_ggplot2_5_download_height),
+      units = input$summarise_general_benchmark_ggplot2_5_download_units,
+      dpi = as.numeric(input$summarise_general_benchmark_ggplot2_5_download_dpi)
+    )
+  }
+)
+
   
   # summarise_incidence_prevalence_benchmark -----
   ## tidy summarise_incidence_prevalence_benchmark -----
@@ -236,8 +283,48 @@ output$summarise_general_benchmark_ggplot2_1_download <- shiny::downloadHandler(
       )
     }
   )
-  
-  
+  createOutput6 <- shiny::reactive({
+    result <- data |>
+      OmopViewer::filterData("summarise_incidence_prevalence_benchmark", input)
+    
+    result <- visOmopResults::splitAdditional(result) |>
+      dplyr::mutate(person_n = as.numeric(.data$person_n))|>
+      visOmopResults::splitGroup()|>
+      dplyr::mutate(estimate_value = as.numeric(.data$estimate_value)) |>
+      visOmopResults::pivotEstimates()
+    ggplot2::ggplot(result, 
+                    ggplot2::aes(x = person_n, 
+                                 y = .data[[input$summarise_incidence_prevalence_benchmark_estimate_name]], 
+                                 color = cdm_name)) +
+      ggplot2::geom_point() +
+      ggplot2::facet_wrap(~ task) +
+      ggplot2::labs(
+        x = "Person Count",
+        y = input$summarise_incidence_prevalence_benchmark_estimate_name,
+      ) +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(
+        legend.position = "bottom",
+        axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10)
+      )
+  })
+  output$summarise_incidence_prevalence_benchmark_ggplot2_6 <- shiny::renderPlot({
+    createOutput6()
+  })
+  output$summarise_incidence_prevalence_benchmark_ggplot2_6_download <- shiny::downloadHandler(
+    filename = paste0("output_ggplot2_size_summarise_incidence_prevalence_benchmark", ".png"),
+    content = function(file) {
+      obj <- createOutput6()
+      ggplot2::ggsave(
+        filename = file,
+        plot = obj,
+        width = as.numeric(input$summarise_incidence_prevalence_benchmark_ggplot2_6_download_width),
+        height = as.numeric(input$summarise_incidence_prevalence_benchmark_ggplot2_6_download_height),
+        units = input$summarise_incidence_prevalence_benchmark_ggplot2_6_download_units,
+        dpi = as.numeric(input$summarise_incidence_prevalence_benchmark_ggplot2_6_download_dpi)
+      )
+    }
+  )  
   # summarise_cdm_connector_benchmark -----
   ## tidy summarise_cdm_connector_benchmark -----
   getTidyDataSummariseCdmConnectorBenchmark <- shiny::reactive({
@@ -344,5 +431,47 @@ output$summarise_general_benchmark_ggplot2_1_download <- shiny::downloadHandler(
       )
     }
   )
+  createOutput7 <- shiny::reactive({
+    result <- data |>
+      OmopViewer::filterData("summarise_cdm_connector_benchmark", input)
+    
+    result <- visOmopResults::splitAdditional(result) |>
+      dplyr::mutate(person_n = as.numeric(.data$person_n))|>
+      visOmopResults::splitGroup()|>
+      dplyr::mutate(estimate_value = as.numeric(.data$estimate_value)) |>
+      visOmopResults::pivotEstimates()
+    ggplot2::ggplot(result, 
+                    ggplot2::aes(x = person_n, 
+                                 y = .data[[input$summarise_cdm_connector_benchmark_estimate_name]], 
+                                 color = cdm_name)) +
+      ggplot2::geom_point() +
+      ggplot2::facet_wrap(~ task) +
+      ggplot2::labs(
+        x = "Person Count",
+        y = input$summarise_cdm_connector_benchmark_estimate_name,
+      ) +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(
+        legend.position = "bottom",
+        axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10)
+      )
+  })
+  output$summarise_cdm_connector_benchmark_ggplot2_7 <- shiny::renderPlot({
+    createOutput7()
+  })
+  output$summarise_cdm_connector_benchmark_ggplot2_7_download <- shiny::downloadHandler(
+    filename = paste0("output_ggplot2_size_cdm_connector_benchmark_benchmark", ".png"),
+    content = function(file) {
+      obj <- createOutput7()
+      ggplot2::ggsave(
+        filename = file,
+        plot = obj,
+        width = as.numeric(input$summarise_cdm_connector_benchmark_ggplot2_7_download_width),
+        height = as.numeric(input$summarise_cdm_connector_benchmark_ggplot2_7_download_height),
+        units = input$summarise_cdm_connector_ggplot2_7_download_units,
+        dpi = as.numeric(input$summarise_cdm_connector_benchmark_ggplot2_77_download_dpi)
+      )
+    }
+  )  
   
 }
