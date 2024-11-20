@@ -32,8 +32,9 @@ omopgenerics::exportSummarisedResult(
   general_benchmark,
   incidencePrevalence_benchmark,
   cdmConnector_benchmark,
+  minCellCount = minCellCount,
   path = outputFolder,
-  fileName = "result_benchmark_{cdmName}.csv"
+  fileName = "result_benchmark_{cdm_name}_{date}.csv"
 )
 
 # reading tables in write schema
@@ -57,7 +58,7 @@ files_to_zip <- list.files(outputFolder)
 files_to_zip <- files_to_zip[stringr::str_detect(files_to_zip, dbName)]
 zip::zip(
   zipfile = file.path(paste0(
-    outputFolder, "/results_", db_name, ".zip"
+    outputFolder, "/results_", dbName, ".zip"
   )),
   files = files_to_zip,
   root = outputFolder

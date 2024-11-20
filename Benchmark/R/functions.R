@@ -46,10 +46,13 @@ generalBenchmark <- function(cdm, iterations) {
     # 3) Count individuals in person but not in condition occurrence table
     tictoc::tic()
     cdm$person |>
-      dplyr::left_join(cdm$condition_occurrence |>
-        dplyr::group_by(person_id) |>
-        dplyr::tally() |>
-        dplyr::ungroup()) |>
+      dplyr::left_join(
+        cdm$condition_occurrence |>
+          dplyr::group_by(person_id) |>
+          dplyr::tally() |>
+          dplyr::ungroup(),
+        by = "person_id"
+      ) |>
       dplyr::filter(is.na(n)) |>
       dplyr::tally() |>
       dplyr::pull("n")
@@ -74,10 +77,13 @@ generalBenchmark <- function(cdm, iterations) {
     # 5) Count individuals in person (in write schema) but not in condition occurrence table
     tictoc::tic()
     cdm$person_ws |>
-      dplyr::left_join(cdm$condition_occurrence |>
-        dplyr::group_by(person_id) |>
-        dplyr::tally() |>
-        dplyr::ungroup()) |>
+      dplyr::left_join(
+        cdm$condition_occurrence |>
+          dplyr::group_by(person_id) |>
+          dplyr::tally() |>
+          dplyr::ungroup(),
+        by = "person_id"
+      ) |>
       dplyr::filter(is.na(n)) |>
       dplyr::tally() |>
       dplyr::pull("n")
@@ -113,7 +119,9 @@ generalBenchmark <- function(cdm, iterations) {
 
     # 8) Get ingredient codes with CodelistGenerator
     tictoc::tic()
-    druglist <- CodelistGenerator::getDrugIngredientCodes(cdm = cdm, name = NULL)
+    druglist <- CodelistGenerator::getDrugIngredientCodes(
+      cdm = cdm, name = NULL, nameStyle = "{concept_name}"
+    )
     tictoc::toc()
     task_name <- "Get ingredient codes with CodelistGenerator"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
@@ -123,11 +131,11 @@ generalBenchmark <- function(cdm, iterations) {
     cdm <- DrugUtilisation::generateDrugUtilisationCohortSet(
       cdm = cdm,
       name = "drug_cohorts",
-      conceptSet = druglist[c("acetaminophen", "metformin")],
+      conceptSet = druglist[c("acetaminophen", "warfarin")],
       gapEra = 30
     )
     t <- tictoc::toc()
-    task_name <- "Instantiate acetaminophen and metformin cohorts"
+    task_name <- "Instantiate acetaminophen and warfarin cohorts"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
     # 10) Require 365 days of prior washout to drug_cohorts
