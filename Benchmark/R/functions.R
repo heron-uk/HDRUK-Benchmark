@@ -194,8 +194,8 @@ generalBenchmark <- function(cdm, iterations) {
 
   settings <- dplyr::tibble(
     result_id = unique(res$result_id),
-    package_name = "HDRUK-benchmark",
-    package_version = "0.1.0",
+    package_name = pkg_name,
+    package_version = pkg_version,
     result_type = "summarise_general_benchmark"
   )
   res <- res |>
@@ -206,13 +206,18 @@ generalBenchmark <- function(cdm, iterations) {
 
 incidencePrevalenceBenchmark <- function(cdm, iterations) {
   res <- omopgenerics::emptySummarisedResult()
+
   for (i in 1:iterations) {
+    mes <- glue::glue("IncidencePrevalence benchmark interation {i}/{iterations}")
+    log4r::info(logger = logger, mes)
+
     x <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm, analysisType = "all")
-    x <- x |> dplyr::mutate(
-      strata_name = "iteration",
-      strata_level = as.character(i),
-      estimate_name = "time_minutes"
-    )
+    x <- x |>
+      dplyr::mutate(
+        strata_name = "iteration",
+        strata_level = as.character(i),
+        estimate_name = "time_minutes"
+      )
     x <- dplyr::bind_rows(
       x,
       x |>
@@ -224,10 +229,13 @@ incidencePrevalenceBenchmark <- function(cdm, iterations) {
     )
     res <- dplyr::bind_rows(res, x)
   }
+
+  log4r::info(logger = logger, "Compile results for IncidencePrevalence benchmark")
+
   settings <- dplyr::tibble(
     result_id = unique(res$result_id),
-    package_name = "",
-    package_version = "",
+    package_name = pkg_name,
+    package_version = pkg_version,
     result_type = "summarise_incidence_prevalence_benchmark"
   )
   res <- res |>
@@ -237,11 +245,15 @@ incidencePrevalenceBenchmark <- function(cdm, iterations) {
 
 cdmConnectorBenchmark <- function(cdm, iterations) {
   res <- list()
+
   for (i in 1:iterations) {
+    mes <- glue::glue("CDMConnector benchmark interation {i}/{iterations}")
+    log4r::info(logger = logger, mes)
     res <- dplyr::bind_rows(res, CDMConnector::benchmarkCDMConnector(cdm) |>
       dplyr::mutate(strata_level = as.character(i)))
   }
 
+  log4r::info(logger = logger, "Compile results for CDMConnector benchmark")
   res <- res |>
     tidyr::pivot_longer(
       cols = c(time_taken_secs, time_taken_mins),
@@ -267,8 +279,8 @@ cdmConnectorBenchmark <- function(cdm, iterations) {
 
   settings <- dplyr::tibble(
     result_id = unique(res$result_id),
-    package_name = "",
-    package_version = "",
+    package_name = pkg_name,
+    package_version = pkg_version,
     result_type = "summarise_cdm_connector_benchmark"
   )
   res <- res |>

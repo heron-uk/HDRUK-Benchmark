@@ -1,5 +1,7 @@
 source("R/functions.R")
 iterations <- 1
+pkg_name <- "HDRUK-benchmark"
+pkg_version <- "0.1.0"
 
 # create log file
 outputFolder <- here::here("Results")
