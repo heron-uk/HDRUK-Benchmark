@@ -8,6 +8,10 @@ logfile <- file.path(outputFolder, paste0(
 ))
 logger <- log4r::create.logger(logfile = logfile, level = "INFO")
 
+# reading tables in write schema
+log4r::info(logger = logger, "reading tables in write schema (initial)")
+initialTables <- omopgenerics::listSourceTables(cdm = cdm)
+
 # general benchmark
 log4r::info(logger = logger, "general benchmark")
 general_benchmark <- generalBenchmark(cdm = cdm, iterations = iterations)
@@ -30,13 +34,25 @@ omopgenerics::exportSummarisedResult(
   fileName = "result_benchmark_{cdmName}.csv"
 )
 
+# reading tables in write schema
+log4r::info(logger = logger, "reading tables in write schema (final)")
+finalTables <- omopgenerics::listSourceTables(cdm = cdm)
+createdTables <- finalTables[!finalTables %in% initialTables]
+if (length(createdTables) > 0) {
+  createdTables <- paste0(createdTables, collapse = ", ")
+  mes <- "the following tables where created in the write schema: {createdTables}" |>
+    glue::glue()
+  log4r::info(logger = logger, mes)
+}
+
 # Close connection
+log4r::info(logger = logger, "closing connection")
 CDMConnector::cdmDisconnect(cdm)
 
 # Zip the results
+log4r::info(logger = logger, "ziping results")
 files_to_zip <- list.files(outputFolder)
 files_to_zip <- files_to_zip[stringr::str_detect(files_to_zip, dbName)]
-
 zip::zip(
   zipfile = file.path(paste0(
     outputFolder, "/results_", db_name, ".zip"
