@@ -1,7 +1,28 @@
+new_rows <- function(res, task_name, time, iteration) {
+  res <- dplyr::bind_rows(res, tibble::tibble(
+    group_level = task_name,
+    estimate_value = as.character(time$toc - time$tic),
+    estimate_name = "time_seconds",
+    strata_level = as.character(iteration)
+  ) |>
+    tibble::add_row(
+      group_level = task_name,
+      estimate_value = as.character(round((time$toc - time$tic) / 60, 1)),
+      estimate_name = "time_minutes",
+      strata_level = as.character(iteration)
+    ))
+  return(res)
+}
+
 generalBenchmark <- function(cdm, iterations) {
+
   res <- tibble::tibble()
 
   for (i in 1:iterations) {
+    mes <- glue::glue("general benchmark interation {i}/{iterations}")
+    log4r::info(logger = logger, mes)
+
+    # 1) Count condition occurrence rows
     tictoc::tic()
     cdm$condition_occurrence |>
       dplyr::tally() |>
@@ -10,7 +31,7 @@ generalBenchmark <- function(cdm, iterations) {
     task_name <- "Count condition occurrence rows"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
-    # 2) grouped count
+    # 2) Count individuals in condition occurrence table
     tictoc::tic()
     cdm$condition_occurrence |>
       dplyr::group_by(person_id) |>
@@ -22,9 +43,7 @@ generalBenchmark <- function(cdm, iterations) {
     task_name <- "Count individuals in condition occurrence table"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
-
-
-    # 3) join
+    # 3) Count individuals in person but not in condition occurrence table
     tictoc::tic()
     cdm$person |>
       dplyr::left_join(cdm$condition_occurrence |>
@@ -38,7 +57,7 @@ generalBenchmark <- function(cdm, iterations) {
     task_name <- "Count individuals in person but not in condition occurrence table"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
-    # 4) compute to write schema
+    # 4) Compute person table to write schema
     tictoc::tic()
     cdm$person_ws <- cdm$person |>
       dplyr::compute(
@@ -48,13 +67,11 @@ generalBenchmark <- function(cdm, iterations) {
     cdm$person_ws |>
       dplyr::tally() |>
       dplyr::pull("n")
-
     t <- tictoc::toc()
     task_name <- "Compute person table to write schema"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
-
-    # 5) join with a table in the write_schema
+    # 5) Count individuals in person (in write schema) but not in condition occurrence table
     tictoc::tic()
     cdm$person_ws |>
       dplyr::left_join(cdm$condition_occurrence |>
@@ -68,48 +85,60 @@ generalBenchmark <- function(cdm, iterations) {
     task_name <- "Count individuals in person (in write schema) but not in condition occurrence table"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
-    # incprev denominator
+    # 6) Create IncidencePrevalence cohorts
     tictoc::tic()
     cdm <- IncidencePrevalence::generateDenominatorCohortSet(
       cdm = cdm,
       name = "denominator",
-      ageGroup = list(
-        c(18, 150),
-        c(18, 64),
-        c(65, 150)
-      ),
-      cohortDateRange = as.Date(c(
-        "2013-01-01",
-        "2022-12-31"
-      )),
+      ageGroup = list(c(18, 150), c(0, 17), c(18, 64), c(65, 150)),
       sex = c("Both", "Male", "Female"),
       daysPriorObservation = c(365)
     )
-
-
     t <- tictoc::toc()
     task_name <- "Create IncidencePrevalence cohorts"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
-
-    # drugutilisation cohort
+    # 7) Create demographics cohorts
     tictoc::tic()
-    druglist <- CodelistGenerator::getDrugIngredientCodes(cdm, c("acetaminophen", "metformin"))
+    cdm$denominator_cc <- CohortConstructor::demographicsCohort(
+      cdm = cdm,
+      name = "denominator_cc",
+      ageRange = list(c(18, 150), c(0, 17), c(18, 64), c(65, 150)),
+      sex = c("Both", "Male", "Female"),
+      minPriorObservation = c(365)
+    )
+    t <- tictoc::toc()
+    task_name <- "Create demographics cohorts"
+    res <- new_rows(res, task_name = task_name, time = t, iteration = i)
+
+    # 8) Get ingredient codes with CodelistGenerator
+    tictoc::tic()
+    druglist <- CodelistGenerator::getDrugIngredientCodes(cdm = cdm, name = NULL)
     tictoc::toc()
     task_name <- "Get ingredient codes with CodelistGenerator"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
+    # 9) Instantiate acetaminophen and metformin cohorts
     tictoc::tic()
     cdm <- DrugUtilisation::generateDrugUtilisationCohortSet(
       cdm = cdm,
       name = "drug_cohorts",
-      conceptSet = druglist
+      conceptSet = druglist[c("acetaminophen", "metformin")],
+      gapEra = 30
     )
-    cdm$drug_cohorts <- cdm$drug_cohorts |> DrugUtilisation::requireObservationBeforeDrug(days = 365)
     t <- tictoc::toc()
-    task_name <- "Create DrugUtilisation cohorts"
+    task_name <- "Instantiate acetaminophen and metformin cohorts"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
+    # 10) Require 365 days of prior washout to drug_cohorts
+    tictoc::tic()
+    cdm$drug_cohorts <- cdm$drug_cohorts |>
+      DrugUtilisation::requirePriorDrugWashout(days = 365)
+    t <- tictoc::toc()
+    task_name <- "Require 365 days of prior washout to drug_cohorts"
+    res <- new_rows(res, task_name = task_name, time = t, iteration = i)
+
+    # 11) Get conditions codes with CodelistGenerator
     tictoc::tic()
     codes_sin <- CodelistGenerator::getCandidateCodes(cdm, c("sinusitis"))$concept_id
     codes_ph <- CodelistGenerator::getCandidateCodes(cdm, c("pharyngitis"))$concept_id
@@ -120,12 +149,32 @@ generalBenchmark <- function(cdm, iterations) {
 
     codes <- omopgenerics::newCodelist(list("sinusitis" = codes_sin, "bronchitis" = codes_bro, "pharyngitis" = codes_ph))
 
+    # 12) Create condtions cohorts with CohortConstructor
     tictoc::tic()
-    cdm$conditions_cohort <- CohortConstructor::conceptCohort(cdm, conceptSet = codes, name = "conditions_cohort")
+    cdm$conditions_cohort <- CohortConstructor::conceptCohort(
+      cdm = cdm,
+      conceptSet = codes,
+      name = "conditions_cohort"
+    )
+    tictoc::toc()
+    task_name <- "Create condtions cohorts with CohortConstructor"
+    res <- new_rows(res, task_name = task_name, time = t, iteration = i)
+
+    # 13) Drop tables created
+    tictoc::tic()
+    cdm <- CDMConnector::dropSourceTable(
+      cdm = cdm,
+      name = dplyr::starts_with(c(
+        "conditions_cohort", "drug_cohorts", "denominator_cc", "denominator",
+        "person_ws"
+      ))
+    )
     tictoc::toc()
     task_name <- "Create condtions cohorts with CohortConstructor"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
   }
+
+  log4r::info(logger = logger, "Compile results for general benchmark")
 
   res <- res |>
     dplyr::mutate(
@@ -145,29 +194,13 @@ generalBenchmark <- function(cdm, iterations) {
 
   settings <- dplyr::tibble(
     result_id = unique(res$result_id),
-    package_name = "",
-    package_version = "",
+    package_name = "HDRUK-benchmark",
+    package_version = "0.1.0",
     result_type = "summarise_general_benchmark"
   )
   res <- res |>
     omopgenerics::newSummarisedResult(settings = settings)
 
-  return(res)
-}
-
-new_rows <- function(res, task_name, time, iteration) {
-  res <- dplyr::bind_rows(res, tibble::tibble(
-    group_level = task_name,
-    estimate_value = as.character(time$toc - time$tic),
-    estimate_name = "time_seconds",
-    strata_level = as.character(iteration)
-  ) |>
-    tibble::add_row(
-      group_level = task_name,
-      estimate_value = as.character(round((time$toc - time$tic) / 60, 1)),
-      estimate_name = "time_minutes",
-      strata_level = as.character(iteration)
-    ))
   return(res)
 }
 
