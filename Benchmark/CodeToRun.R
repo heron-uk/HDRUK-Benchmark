@@ -1,4 +1,3 @@
-
 db_name <- "..."
 
 con <- DBI::dbConnect("...")
@@ -9,14 +8,16 @@ writeSchema <- "..."
 prefix <- "..."
 
 
-cdm <- CDMConnector::cdmFromCon(con = con,
-                                cdmSchema = cdmSchema,
-                                writeSchema = c(schema = writeSchema,
-                                                prefix = prefix))
+cdm <- CDMConnector::cdmFromCon(
+  con = con,
+  cdmSchema = cdmSchema,
+  writeSchema = c(
+    schema = writeSchema,
+    prefix = prefix
+  )
+)
 
 
 
 
 source("R/RunBenchmark.R")
-
-
