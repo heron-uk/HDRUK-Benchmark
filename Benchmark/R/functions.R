@@ -168,7 +168,14 @@ generalBenchmark <- function(cdm, iterations) {
     task_name <- "Create condtions cohorts with CohortConstructor"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
-    # 13) Drop tables created
+    # 13) Summary cdm
+    tictoc::tic()
+    snap <- summary(cdm)
+    tictoc::toc()
+    task_name <- "Summary cdm"
+    res <- new_rows(res, task_name = task_name, time = t, iteration = i)
+
+    # 14) Drop tables created
     tictoc::tic()
     cdm <- CDMConnector::dropSourceTable(
       cdm = cdm,
@@ -178,7 +185,7 @@ generalBenchmark <- function(cdm, iterations) {
       ))
     )
     tictoc::toc()
-    task_name <- "Create condtions cohorts with CohortConstructor"
+    task_name <- "Drop tables created"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
   }
 
