@@ -470,6 +470,13 @@
       ],
       "Hash": "b8552d117e1b808b09a832f589b79035"
     },
+    "log4r": {
+      "Package": "log4r",
+      "Version": "0.4.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "848a2b076b9f6b6cccfba36fd12a6bf1"
+    },
     "lubridate": {
       "Package": "lubridate",
       "Version": "1.9.3",
