@@ -28,3 +28,5 @@ This repository contains code for conducting benchmark timing on a server. It is
     -   Copy the generated result files (in .csv format) into the `Data` folder located within the `shiny` folder.
     -   Open the `global.R` script in the `shiny` folder.
     -   Click the *Run App* button in RStudio to launch the local Shiny app for interactive exploration of the results.
+
+The overall results of the benchmark, run by all the data partners involved, will be published in the following Shiny app: <https://dpa-pde-oxford.shinyapps.io/benchmark-hdruk/>

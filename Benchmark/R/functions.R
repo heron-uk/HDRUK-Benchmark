@@ -14,7 +14,7 @@ new_rows <- function(res, task_name, time, iteration) {
   return(res)
 }
 
-generalBenchmark <- function(cdm, iterations) {
+generalBenchmark <- function(cdm, iterations, logger) {
 
   res <- tibble::tibble()
 
@@ -120,8 +120,7 @@ generalBenchmark <- function(cdm, iterations) {
     # 8) Get ingredient codes with CodelistGenerator
     tictoc::tic()
     druglist <- CodelistGenerator::getDrugIngredientCodes(
-      cdm = cdm, name = NULL, nameStyle = "{concept_name}"
-    )
+      cdm = cdm, name = NULL, nameStyle = "{concept_name}")
     tictoc::toc()
     task_name <- "Get ingredient codes with CodelistGenerator"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
@@ -151,7 +150,7 @@ generalBenchmark <- function(cdm, iterations) {
     codes_sin <- CodelistGenerator::getCandidateCodes(cdm, c("sinusitis"))$concept_id
     codes_ph <- CodelistGenerator::getCandidateCodes(cdm, c("pharyngitis"))$concept_id
     codes_bro <- CodelistGenerator::getCandidateCodes(cdm, c("bronchitis"))$concept_id
-    tictoc::toc()
+    t <- tictoc::toc()
     task_name <- "Get conditions codes with CodelistGenerator"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
@@ -164,14 +163,14 @@ generalBenchmark <- function(cdm, iterations) {
       conceptSet = codes,
       name = "conditions_cohort"
     )
-    tictoc::toc()
+    t <- tictoc::toc()
     task_name <- "Create condtions cohorts with CohortConstructor"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
     # 13) Summary cdm
     tictoc::tic()
     snap <- summary(cdm)
-    tictoc::toc()
+    t <- tictoc::toc()
     task_name <- "Summary cdm"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
@@ -184,8 +183,21 @@ generalBenchmark <- function(cdm, iterations) {
         "person_ws"
       ))
     )
-    tictoc::toc()
+    t <- tictoc::toc()
     task_name <- "Drop tables created"
+    res <- new_rows(res, task_name = task_name, time = t, iteration = i)
+
+    # 15) Create cohort for diabetes, asthma and hypertension
+    tictoc::tic()
+    cdm <- CDMConnector::generateConceptCohortSet(
+      cdm = cdm,
+      conceptSet = list("diabetes" = CodelistGenerator::getDescendants(cdm, conceptId = 201820)$concept_id,
+                      "hypertension_disorder" = CodelistGenerator::getDescendants(cdm, conceptId = 316866)$concept_id,
+                      "asthma" = CodelistGenerator::getDescendants(cdm, conceptId = 317009)$concept_id),
+      name = "my_cohort"
+      )
+    t <- tictoc::toc()
+    task_name <- "Cohort created using codes descendant from diabetes, hypertension disorder and asthma"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
   }
 
@@ -216,10 +228,10 @@ generalBenchmark <- function(cdm, iterations) {
   res <- res |>
     omopgenerics::newSummarisedResult(settings = settings)
 
-  return(res)
+  return(list(general_benchmark = res, cdm = cdm))
 }
 
-incidencePrevalenceBenchmark <- function(cdm, iterations) {
+incidencePrevalenceBenchmark <- function(cdm, iterations, logger) {
   res <- omopgenerics::emptySummarisedResult()
 
   for (i in 1:iterations) {
@@ -258,7 +270,7 @@ incidencePrevalenceBenchmark <- function(cdm, iterations) {
   return(res)
 }
 
-cdmConnectorBenchmark <- function(cdm, iterations) {
+cdmConnectorBenchmark <- function(cdm, iterations, logger) {
   res <- list()
 
   for (i in 1:iterations) {
@@ -302,3 +314,52 @@ cdmConnectorBenchmark <- function(cdm, iterations) {
     omopgenerics::newSummarisedResult(settings = settings)
   return(res)
 }
+
+cohortCharacteristicsBenchmark <- function(cdm, iterations, logger) {
+  res <- omopgenerics::emptySummarisedResult()
+
+  for (i in 1:iterations) {
+    mes <- glue::glue("CohortCharacteristics benchmark interation {i}/{iterations}")
+    log4r::info(logger = logger, mes)
+
+    x <- CohortCharacteristics::benchmarkCohortCharacteristics(cdm$my_cohort)
+    x <- x |>
+    dplyr::mutate(
+      strata_name = "iteration",
+      strata_level = as.character(i),
+      estimate_name = "time_seconds"
+    )
+
+  res <- dplyr::bind_rows(res, x)
+  }
+
+  log4r::info(logger = logger, "Compile results for CohortCharacteristics benchmark")
+
+  res <- dplyr::bind_rows(
+    res,
+    res |>
+      dplyr::filter(estimate_name == "time_seconds") |>
+      dplyr::mutate(
+        estimate_name = "time_minutes",
+        estimate_value = as.character(as.numeric(estimate_value) / 60)
+      )
+  ) |>
+    dplyr::mutate(
+      dbms = attr(attr(cdm, "cdm_source"), "source_type"),
+      person_n = omopgenerics::settings(x)$person_n
+    ) |>
+    dplyr::select(!c(additional_name, additional_level)) |>
+    omopgenerics::uniteAdditional(cols = c("dbms", "person_n"))
+  settings <- dplyr::tibble(
+    result_id = unique(res$result_id),
+    package_name = pkg_name,
+    package_version = pkg_version,
+    result_type = "summarise_cohort_characteristics_benchmark"
+  )
+  res <- res |>
+    omopgenerics::newSummarisedResult(settings = settings)
+  return(res)
+}
+
+
+
