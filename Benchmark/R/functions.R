@@ -345,7 +345,7 @@ cohortCharacteristicsBenchmark <- function(cdm, iterations, logger) {
       )
   ) |>
     dplyr::mutate(
-      dbms = attr(attr(cdm, "cdm_source"), "source_type"),
+      dbms = omopgenerics::sourceType(cdm),
       person_n = omopgenerics::settings(x)$person_n
     ) |>
     dplyr::select(!c(additional_name, additional_level)) |>
