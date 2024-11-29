@@ -16,22 +16,30 @@ initialTables <- omopgenerics::listSourceTables(cdm = cdm)
 
 # general benchmark
 log4r::info(logger = logger, "general benchmark")
-general_benchmark <- generalBenchmark(cdm = cdm, iterations = iterations)
+result <- generalBenchmark(cdm = cdm, iterations = iterations, logger = logger)
+general_benchmark <- result$general_benchmark
+cdm <- result$cdm
 
 # CDMConnector benchmark
 log4r::info(logger = logger, "CDMConnector benchmark")
-cdmConnector_benchmark <- cdmConnectorBenchmark(cdm = cdm, iterations = iterations)
+cdmConnector_benchmark <- cdmConnectorBenchmark(cdm = cdm, iterations = iterations, logger = logger)
 
 # IncidencePrevalence benchmark
 log4r::info(logger = logger, "IncidencePrevalence benchmark")
-incidencePrevalence_benchmark <- incidencePrevalenceBenchmark(cdm = cdm, iterations = iterations)
+incidencePrevalence_benchmark <- incidencePrevalenceBenchmark(cdm = cdm, iterations = iterations, logger = logger)
+
+# CohortCharacteristics benchmark
+log4r::info(logger = logger, "CohortCharacteristics benchmark")
+cohortCharacteristics_benchmark <- cohortCharacteristicsBenchmark(cdm = cdm, iterations = iterations, logger = logger)
 
 # export results
 log4r::info(logger = logger, "Export results")
+
 omopgenerics::exportSummarisedResult(
   general_benchmark,
   incidencePrevalence_benchmark,
   cdmConnector_benchmark,
+  cohortCharacteristics_benchmark,
   minCellCount = minCellCount,
   path = outputFolder,
   fileName = "result_benchmark_{cdm_name}_{date}.csv"
