@@ -37,13 +37,59 @@ filter_data <- function(data, input){
   return(res)
 
 }
-
+simpleTable <- function(result,
+                        header = character(),
+                        group = character(),
+                        hide = character()) {
+  # initial checks
+  if (length(header) == 0) header <- character()
+  if (length(group) == 0) group <- NULL
+  if (length(hide) == 0) hide <- character()
+  
+  if (nrow(result) == 0) {
+    return(gt::gt(dplyr::tibble()))
+  }
+  
+  result <- result |>
+    omopgenerics::addSettings() |>
+    omopgenerics::splitAll() |>
+    dplyr::select(-c("result_id", "min_observation_start", "max_observation_end"))
+  
+  # format estimate column
+  formatEstimates <- c(
+    "N (%)" = "<count> (<percentage>%)",
+    "N" = "<count>",
+    "median [Q25 - Q75]" = "<median> [<q25> - <q75>]",
+    "mean (SD)" = "<mean> (<sd>)",
+    "[Q25 - Q75]" = "[<q25> - <q75>]",
+    "range" = "[<min> <max>]",
+    "[Q05 - Q95]" = "[<q05> - <q95>]"
+  )
+  result <- result |>
+    visOmopResults::formatEstimateValue(
+      decimals = c(integer = 0, numeric = 1, percentage = 0)
+    ) |>
+    visOmopResults::formatEstimateName(estimateName = formatEstimates) |>
+    suppressMessages() |>
+    visOmopResults::formatHeader(header = header) |>
+    dplyr::select(!dplyr::any_of(c("estimate_type", hide)))
+  if (length(group) > 1) {
+    id <- paste0(group, collapse = "; ")
+    result <- result |>
+      tidyr::unite(col = !!id, dplyr::all_of(group), sep = "; ", remove = TRUE)
+    group <- id
+  }
+  result <- result |>
+    visOmopResults::formatTable(groupColumn = group)
+  return(result)
+}
 server <- function(input, output, session) {
+  source("background.R")
   # download raw data -----
   output$download_raw <- shiny::downloadHandler(
     filename = "results.csv",
     content = function(file) {
-      OmopViewer::exportSummarisedResult(data, fileName = file)
+     omopgenerics::exportSummarisedResult(data, fileName = file)
     }
   )
   
@@ -67,13 +113,15 @@ server <- function(input, output, session) {
    res <- filter_data(data, input)
   
    res <- res |>
-      OmopViewer::tidyData()
+     omopgenerics::addSettings() |>
+     omopgenerics::splitAll() |>
+     dplyr::select(!c("result_id"))
   
     # columns to eliminate
     colsEliminate <- colnames(res)
     colsEliminate <- colsEliminate[!colsEliminate %in% c(
       input$summarise_benchmark_tidy_columns, "variable_name", "variable_level",
-      "estimate_name", "estimate_type", "estimate_value"
+      "estimate_name", "estimate_type", "estimate_value","min_observation_start", "max_observation_end"
     )]
     
     # pivot
@@ -108,9 +156,10 @@ server <- function(input, output, session) {
   ## output 0 -----
   createOutput0 <- shiny::reactive({
     
-    result <- filter_data(data, input)
+    result <- filter_data(data, input) 
 
-    OmopViewer::omopViewerTable(
+
+   simpleTable(
       result,
       header = input$summarise_benchmark_gt_0_header,
       group = input$summarise_benchmark_gt_0_group,
@@ -131,25 +180,41 @@ server <- function(input, output, session) {
   
 createOutput1 <- shiny::reactive({
   
-  result <- filter_data(data, input)
+  result <- filter_data(data, input) 
+    
 
   if (input$summarise_benchmark_ggplot2_1_plotType == "barplot") {
-    visOmopResults::barPlot(result, x = "task", y = input$summarise_benchmark_estimate_name,
+    plot<-visOmopResults::barPlot(result, x = "task", y = input$summarise_benchmark_estimate_name,
                             facet = input$summarise_benchmark_ggplot2_1_facet,
                             colour = input$summarise_benchmark_ggplot2_1_colour) +
       ggplot2::theme(
         axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10))
+   
+    if (input$log_scale_y_ggplot2_1) {
+      plot <- plot + ggplot2::scale_y_log10()
+    }
+    
+    plot
       
   } else if (input$summarise_benchmark_ggplot2_1_plotType == "line") {
-    visOmopResults::scatterPlot(result, x = "task", y = input$summarise_benchmark_estimate_name,
+    plot<-visOmopResults::scatterPlot(result, x = "task", y = input$summarise_benchmark_estimate_name,
                                 facet = input$summarise_benchmark_ggplot2_1_facet,
                                 colour = input$summarise_benchmark_ggplot2_1_colour,
                                 line = TRUE, point = TRUE, ribbon = FALSE) +
       ggplot2::theme(
         axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10) )
+    if (input$log_scale_x_ggplot2_1) {
+      plot <- plot + ggplot2::scale_x_log10()
+    }
+    
+    if (input$log_scale_y_ggplot2_1) {
+      plot <- plot + ggplot2::scale_y_log10()
+    }
+    plot
   } else {
     NULL  # Return NULL if plot type is invalid to avoid errors
   }
+  
 })
 
 
@@ -179,7 +244,7 @@ createOutput5 <- shiny::reactive({
     dplyr::mutate(estimate_value = as.numeric(.data$estimate_value)) |>
     visOmopResults::pivotEstimates()
   
-  ggplot2::ggplot(result, 
+  plot<-ggplot2::ggplot(result, 
                   ggplot2::aes(x = person_n, 
                                y = .data[[input$summarise_benchmark_estimate_name]], 
                                color = cdm_name)) +
@@ -194,6 +259,15 @@ createOutput5 <- shiny::reactive({
       legend.position = "bottom",
       axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10)
     )
+  if (input$log_scale_x_ggplot2_5) {
+    plot <- plot + ggplot2::scale_x_log10()
+  }
+ 
+  if (input$log_scale_y_ggplot2_5) {
+    plot <- plot + ggplot2::scale_y_log10()
+  }
+
+  plot
 })
 
 output$summarise_benchmark_ggplot2_5 <- shiny::renderPlot({

@@ -12,7 +12,7 @@ ui <- bslib::page_navbar(
   bslib::nav_panel(
     title = "Background",
     icon = shiny::icon("disease"),
-    OmopViewer::cardFromMd("background.md")
+    shiny::includeMarkdown("background.md")
   ),
   bslib::nav_panel(
     title = "Benchmark",
@@ -138,12 +138,12 @@ ui <- bslib::page_navbar(
                   header = NULL,
                   sortable::add_rank_list(
                     text = "none",
-                    labels = c("task", "iteration", "dbms", "person_n", "variable_name", "variable_level", "estimate_name"),
+                    labels = c("task", "iteration", "estimate_name"),
                     input_id = "summarise_benchmark_gt_0_none"
                   ),
                   sortable::add_rank_list(
                     text = "header",
-                    labels = "cdm_name",
+                    labels = c("dbms", "person_n", "cdm_name"),
                     input_id = "summarise_benchmark_gt_0_header"
                   ),
                   sortable::add_rank_list(
@@ -153,7 +153,7 @@ ui <- bslib::page_navbar(
                   ),
                   sortable::add_rank_list(
                     text = "hide",
-                    labels = character(),
+                    labels = c("variable_name",	"variable_level"),
                     input_id = "summarise_benchmark_gt_0_hide"
                   )
                 ),
@@ -221,6 +221,11 @@ ui <- bslib::page_navbar(
                   choices = c("barplot", "line"),
                   options = list(plugins = "remove_button")
                 ),
+                shiny::checkboxInput(
+                  inputId = "log_scale_y_ggplot2_1",
+                  label = "Log scale for Y-axis",
+                  value = FALSE),
+                
                 position = "right"
               ),
               shiny::plotOutput("summarise_benchmark_ggplot2_1")
@@ -260,10 +265,24 @@ ui <- bslib::page_navbar(
               ),
               class = "text-end"
             ),
-            shiny::plotOutput("summarise_benchmark_ggplot2_5")
-          )
+            bslib::layout_sidebar(
+              sidebar = bslib::sidebar(
+                shiny::checkboxInput(
+                  inputId = "log_scale_x_ggplot2_5",
+                  label = "Log scale for X-axis",
+                  value = FALSE),
+                shiny::checkboxInput(
+                  inputId = "log_scale_y_ggplot2_5",
+                  label = "Log scale for Y-axis",
+                  value = FALSE),
+                
+                position = "right"
+              ),
+              shiny::plotOutput("summarise_benchmark_ggplot2_5")
+            )
         )
       )
     )
   )
+)
 )

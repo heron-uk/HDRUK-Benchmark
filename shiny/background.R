@@ -1,8 +1,16 @@
+
+db_names <- unique(data$cdm_name) 
+
+
+db_list <- paste0("- ", db_names, collapse = "\n")
+
+
+background_md <- glue::glue("
 # Benchmark
 
 This Shiny app presents results from analyses conducted on the following databases:
 
-- Synthea synthetic health database
+{db_list}
 
 These results compare the time performance of various R packages across different common data models. The packages analysed include:
 
@@ -14,4 +22,6 @@ These results compare the time performance of various R packages across differen
 - **CohortCharacteristics** (https://darwin-eu.github.io/CohortCharacteristics/)
 
 
-![](hdruk_logo.svg)100px
+![](hdruk_logo.svg){width='100px'}
+")
+writeLines(background_md, "background.md")

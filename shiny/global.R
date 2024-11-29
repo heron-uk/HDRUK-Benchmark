@@ -6,23 +6,23 @@ library(dplyr)
 library(DT)
 library(gt)
 library(here)
-library(OmopViewer)
+# library(OmopViewer)
+library(omopgenerics)
 library(readr)
 library(shiny)
 library(sortable)
 library(visOmopResults)
 
 
+
 data_file<-list.files(here::here("data"), recursive = TRUE,
                       full.names = TRUE)
 
 data_file<-data_file[stringr::str_detect(data_file, ".csv")]
-results_file<-data_file[stringr::str_detect(data_file, "timings")]
+results_file<-data_file[stringr::str_detect(data_file, "benchmark")]
 results <- list()
 for(i in seq_along(results_file)){
-  results[[i]]<-omopgenerics::importSummarisedResult(results_file[i])|>
-    OmopViewer::correctSettings()
-  
+  results[[i]]<-omopgenerics::importSummarisedResult(results_file[i])
   
 }
 data <- dplyr::bind_rows(results) 
