@@ -130,7 +130,7 @@ generalBenchmark <- function(cdm, iterations, logger) {
     cdm <- DrugUtilisation::generateDrugUtilisationCohortSet(
       cdm = cdm,
       name = "drug_cohorts",
-      conceptSet = druglist[c("acetaminophen", "warfarin")],
+      conceptSet = druglist[c("161_acetaminophen", "11289_warfarin")],
       gapEra = 30
     )
     t <- tictoc::toc()
