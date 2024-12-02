@@ -120,8 +120,8 @@ generalBenchmark <- function(cdm, iterations, logger) {
     # 8) Get ingredient codes with CodelistGenerator
     tictoc::tic()
     druglist <- CodelistGenerator::getDrugIngredientCodes(
-      cdm = cdm, name = NULL, nameStyle = "{concept_name}")
-    tictoc::toc()
+      cdm = cdm, name = NULL, nameStyle = "{concept_code}_{concept_name}")
+    t <- tictoc::toc()
     task_name <- "Get ingredient codes with CodelistGenerator"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
