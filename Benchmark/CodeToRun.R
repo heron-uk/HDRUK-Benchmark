@@ -23,7 +23,8 @@ minCellCount <- 5
 cdm <- CDMConnector::cdmFromCon(
   con = con,
   cdmSchema = cdmSchema,
-  writeSchema = c(schema = writeSchema, prefix = prefix),
+  writeSchema =  writeSchema,
+  writePrefix = prefix,
   cdmName = dbName
 )
 
