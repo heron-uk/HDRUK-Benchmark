@@ -24,7 +24,7 @@ This repository contains code for conducting benchmark timing on a server. It is
     -   Open the `CodeToRun.R` file. This is the main script you’ll use.
     -   Follow the instructions within the file to add your database-specific information.
     -   Run the code as directed. This will generate a `Results` folder containing the outputs, including a ZIP file with the results for sharing.
-4.  **Visualize Results in Shiny**
+4.  **OPTIONAL: Visualise Results in Shiny**
     -   Navigate to the `shiny` folder and open the project file `shiny.Rproj` in RStudio.
     -   You should see the project name in the top-right corner of your RStudio session.
     -   Copy the generated result files (in .csv format) into the `Data` folder located within the `shiny` folder.
