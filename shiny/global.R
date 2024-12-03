@@ -1,17 +1,17 @@
-renv::restore()
-
 library(bslib)
 library(dplyr)
 library(DT)
+library(ggplot2)
+library(glue)
 library(gt)
 library(here)
-# library(OmopViewer)
 library(omopgenerics)
 library(readr)
 library(shiny)
 library(sortable)
+library(stringr)
+library(tidyr)
 library(visOmopResults)
-
 
 
 data_file<-list.files(here::here("data"), recursive = TRUE,
@@ -25,4 +25,3 @@ for(i in seq_along(results_file)){
   
 }
 data <- dplyr::bind_rows(results) 
-data

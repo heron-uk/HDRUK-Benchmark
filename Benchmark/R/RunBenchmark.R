@@ -5,7 +5,7 @@ pkg_version <- "0.1.0"
 
 # create log file
 outputFolder <- here::here("Results")
-logfile <- file.path(outputFolder, paste0(
+log_file <- file.path(outputFolder, paste0(
   "/log_", dbName, "_", format(Sys.time(), "%d_%m_%Y_%H_%M_%S"),".txt"
 ))
 logger <- log4r::create.logger(logfile = logfile, level = "INFO")
