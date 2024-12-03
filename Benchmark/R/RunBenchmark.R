@@ -62,8 +62,8 @@ CDMConnector::cdmDisconnect(cdm)
 
 # Zip the results
 log4r::info(logger = logger, "ziping results")
-files_to_zip <- list.files(outputFolder)
-files_to_zip <- files_to_zip[stringr::str_detect(files_to_zip, dbName)]
+files_to_zip <- list.files(outputFolder) |>
+  purrr::keep(\(x) tools::file_ext(x) %in% c("csv", "txt"))
 zip::zip(
   zipfile = file.path(paste0(
     outputFolder, "/results_", dbName, ".zip"
