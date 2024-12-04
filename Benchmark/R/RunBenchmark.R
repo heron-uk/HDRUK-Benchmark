@@ -8,7 +8,7 @@ outputFolder <- here::here("Results")
 log_file <- file.path(outputFolder, paste0(
   "/log_", dbName, "_", format(Sys.time(), "%d_%m_%Y_%H_%M_%S"),".txt"
 ))
-logger <- log4r::create.logger(logfile = logfile, level = "INFO")
+logger <- log4r::create.logger(logfile = log_file, level = "INFO")
 
 # reading tables in write schema
 log4r::info(logger = logger, "reading tables in write schema (initial)")
