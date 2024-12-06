@@ -526,7 +526,7 @@
     },
     "omopgenerics": {
       "Package": "omopgenerics",
-      "Version": "0.4.0",
+      "Version": "0.4.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -545,7 +545,7 @@
         "tidyr",
         "vctrs"
       ],
-      "Hash": "ea05a448c1f3f9d41d8125c337de3704"
+      "Hash": "072f4e363174ababd20aeab7926d5797"
     },
     "pillar": {
       "Package": "pillar",
