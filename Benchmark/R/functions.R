@@ -271,12 +271,15 @@ incidencePrevalenceBenchmark <- function(cdm, iterations, logger) {
 }
 
 cdmConnectorBenchmark <- function(cdm, iterations, logger) {
+
+  source("R/benchmarkCDMConnector.R")
+
   res <- list()
 
   for (i in 1:iterations) {
     mes <- glue::glue("CDMConnector benchmark interation {i}/{iterations}")
     log4r::info(logger = logger, mes)
-    res <- dplyr::bind_rows(res, CDMConnector::benchmarkCDMConnector(cdm) |>
+    res <- dplyr::bind_rows(res, benchmarkCDMConnector(cdm) |>
       dplyr::mutate(strata_level = as.character(i)))
   }
 
