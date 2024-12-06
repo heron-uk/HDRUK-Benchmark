@@ -334,9 +334,13 @@
     },
     "dbplyr": {
       "Package": "dbplyr",
-      "Version": "2.5.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
+      "Version": "2.5.0.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "dbplyr",
+      "RemoteUsername": "oxford-pharmacoepi",
+      "RemoteSha": "65b1826d6637a9eca24d7a371f9675169153d95e",
       "Requirements": [
         "DBI",
         "R",
@@ -358,7 +362,7 @@
         "vctrs",
         "withr"
       ],
-      "Hash": "39b2e002522bfd258039ee4e889e0fd1"
+      "Hash": "630d01d570173be5cb3c495eafab793c"
     },
     "diffobj": {
       "Package": "diffobj",
@@ -522,7 +526,7 @@
     },
     "omopgenerics": {
       "Package": "omopgenerics",
-      "Version": "0.4.0",
+      "Version": "0.4.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -541,7 +545,7 @@
         "tidyr",
         "vctrs"
       ],
-      "Hash": "ea05a448c1f3f9d41d8125c337de3704"
+      "Hash": "072f4e363174ababd20aeab7926d5797"
     },
     "pillar": {
       "Package": "pillar",
