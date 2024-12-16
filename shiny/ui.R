@@ -1,4 +1,7 @@
+source("background.R")
+
 ui <- bslib::page_navbar(
+  theme = bslib::bs_theme(preset = "yeti"),
   title = shiny::tags$span(
     shiny::tags$img(
       src = "hdruk_logo.svg",
@@ -138,7 +141,7 @@ ui <- bslib::page_navbar(
                   header = NULL,
                   sortable::add_rank_list(
                     text = "none",
-                    labels = c("task", "iteration", "estimate_name"),
+                    labels = c("task"),
                     input_id = "summarise_benchmark_gt_0_none"
                   ),
                   sortable::add_rank_list(
@@ -153,7 +156,7 @@ ui <- bslib::page_navbar(
                   ),
                   sortable::add_rank_list(
                     text = "hide",
-                    labels = c("variable_name",	"variable_level"),
+                    labels = c("variable_name",	"variable_level", "iteration", "estimate_name"),
                     input_id = "summarise_benchmark_gt_0_hide"
                   )
                 ),
@@ -217,7 +220,7 @@ ui <- bslib::page_navbar(
                 shiny::selectizeInput(
                   inputId = "summarise_benchmark_ggplot2_1_plotType",
                   label = "Plot Type",
-                  selected = "barplot",
+                  selected = "line",
                   choices = c("barplot", "line"),
                   options = list(plugins = "remove_button")
                 ),

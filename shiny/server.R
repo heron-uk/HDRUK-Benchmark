@@ -48,7 +48,7 @@ simpleTable <- function(result,
   result <- result |>
     omopgenerics::addSettings() |>
     omopgenerics::splitAll() |>
-    dplyr::select(-c("result_id", "min_observation_start", "max_observation_end"))
+    dplyr::select(-dplyr::any_of(c("result_id", "min_observation_start", "max_observation_end")))
   
   # format estimate column
   formatEstimates <- c(
@@ -79,7 +79,7 @@ simpleTable <- function(result,
   return(result)
 }
 server <- function(input, output, session) {
-  source("background.R")
+  #bslib::bs_themer()
   # download raw data -----
   output$download_raw <- shiny::downloadHandler(
     filename = "results.csv",
@@ -198,10 +198,7 @@ createOutput1 <- shiny::reactive({
                                 line = TRUE, point = TRUE, ribbon = FALSE) +
       ggplot2::theme(
         axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 10) )
-    if (input$log_scale_x_ggplot2_1) {
-      plot <- plot + ggplot2::scale_x_log10()
-    }
-    
+  
     if (input$log_scale_y_ggplot2_1) {
       plot <- plot + ggplot2::scale_y_log10()
     }
