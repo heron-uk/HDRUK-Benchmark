@@ -154,14 +154,14 @@ generalBenchmark <- function(cdm, iterations, logger) {
 
     # 11) Get conditions codes with CodelistGenerator
     tictoc::tic()
-    codes_sin <- CodelistGenerator::getCandidateCodes(cdm, c("sinusitis"))$concept_id |> check_int64()
-    codes_ph <- CodelistGenerator::getCandidateCodes(cdm, c("pharyngitis"))$concept_id |> check_int64()
-    codes_bro <- CodelistGenerator::getCandidateCodes(cdm, c("bronchitis"))$concept_id |> check_int64()
+    codes_sin <- CodelistGenerator::getCandidateCodes(cdm, c("sinusitis"))$concept_id
+    codes_ph <- CodelistGenerator::getCandidateCodes(cdm, c("pharyngitis"))$concept_id
+    codes_bro <- CodelistGenerator::getCandidateCodes(cdm, c("bronchitis"))$concept_id
     t <- tictoc::toc()
     task_name <- "Get conditions codes with CodelistGenerator"
     res <- new_rows(res, task_name = task_name, time = t, iteration = i)
 
-    codes <- omopgenerics::newCodelist(list("sinusitis" = codes_sin, "bronchitis" = codes_bro, "pharyngitis" = codes_ph))
+    codes <- omopgenerics::newCodelist(list("sinusitis" = codes_sin, "bronchitis" = codes_bro, "pharyngitis" = codes_ph)|>check_int64())
 
     # 12) Create condtions cohorts with CohortConstructor
     tictoc::tic()
