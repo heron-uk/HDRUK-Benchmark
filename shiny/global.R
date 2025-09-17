@@ -12,6 +12,7 @@ library(sortable)
 library(stringr)
 library(tidyr)
 library(visOmopResults)
+library(shinycssloaders)
 
 
 data_file<-list.files(here::here("data"), recursive = TRUE,
@@ -25,3 +26,4 @@ for(i in seq_along(results_file)){
   
 }
 data <- dplyr::bind_rows(results) 
+
