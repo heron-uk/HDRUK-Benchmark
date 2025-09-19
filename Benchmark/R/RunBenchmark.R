@@ -1,7 +1,7 @@
 source("R/functions.R")
 iterations <- 1
 pkg_name <- "HDRUK-benchmark"
-pkg_version <- "0.1.0"
+pkg_version <- "0.2.0"
 
 # create log file
 outputFolder <- here::here("Results")
@@ -32,6 +32,12 @@ incidencePrevalence_benchmark <- incidencePrevalenceBenchmark(cdm = cdm, iterati
 log4r::info(logger = logger, "CohortCharacteristics benchmark")
 cohortCharacteristics_benchmark <- cohortCharacteristicsBenchmark(cdm = cdm, iterations = iterations, logger = logger)
 
+log4r::info(logger = logger, "CohortConstructor benchmark")
+cohortConstructor_benchmark <- cohortConstructorBenchmark(cdm = cdm, iterations = iterations, logger = logger)
+
+log4r::info(logger = logger, "DrugUtilisation benchmark")
+drugUtilisation_benchmark <- drugUtilisationBenchmark(cdm = cdm, iterations = iterations, logger = logger)
+
 # export results
 log4r::info(logger = logger, "Export results")
 
@@ -40,6 +46,8 @@ omopgenerics::exportSummarisedResult(
   incidencePrevalence_benchmark,
   cdmConnector_benchmark,
   cohortCharacteristics_benchmark,
+  cohortConstructor_benchmark,
+  drugUtilisation_benchmark,
   minCellCount = minCellCount,
   path = outputFolder,
   fileName = "result_benchmark_{cdm_name}_{date}.csv"
