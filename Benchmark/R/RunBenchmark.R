@@ -1,10 +1,15 @@
 source("R/functions.R")
+
 iterations <- 1
 pkg_name <- "HDRUK-benchmark"
 pkg_version <- "0.2.0"
 
 # create log file
 outputFolder <- here::here("Results")
+options(
+  omopgenerics.log_sql_path = paste0(outputFolder, "/sql_logs"),
+  omopgenerics.log_sql_explain_path = paste0(outputFolder, "/sql_explain")
+)
 log_file <- file.path(outputFolder, paste0(
   "/log_", dbName, "_", format(Sys.time(), "%d_%m_%Y_%H_%M_%S"),".txt"
 ))
@@ -70,12 +75,24 @@ CDMConnector::cdmDisconnect(cdm)
 
 # Zip the results
 log4r::info(logger = logger, "ziping results")
-files_to_zip <- list.files(outputFolder) |>
-  purrr::keep(\(x) tools::file_ext(x) %in% c("csv", "txt"))
+root_files <- list.files(
+  outputFolder,
+  pattern     = "\\.(csv|txt)$",
+  recursive   = FALSE,
+  full.names  = FALSE
+)
+
+# 2) All SQL files anywhere under outputFolder (keeps subfolder paths)
+sql_files <- list.files(
+  outputFolder,
+  pattern     = "\\.sql$",
+  recursive   = TRUE,
+  full.names  = FALSE
+)
+
+# 3) Zip while preserving structure (paths like "sub/dir/file.sql" are kept)
 zip::zip(
-  zipfile = file.path(paste0(
-    outputFolder, "/results_", dbName, ".zip"
-  )),
-  files = files_to_zip,
-  root = outputFolder
+  zipfile = file.path(outputFolder, paste0("results_", dbName, ".zip")),
+  files   = c(root_files, sql_files),
+  root    = outputFolder
 )

@@ -397,10 +397,11 @@ cohortConstructorBenchmark <- function(cdm, iterations, logger) {
 
   inst <- res |>
     omopgenerics::addSettings(settingsColumn = "result_type") |>
-    dplyr::filter(.data$result_type == "instanciation_time" & .data$variable_name != "Cohort set") |>
+    dplyr::filter(.data$result_type == "instanciation_time") |>
     omopgenerics::tidy() |>
     dplyr::mutate(
       cohort_name = dplyr::case_when(
+        .data$variable_name == "Cohort set"                                     ~ paste0("Cohort set: ", .data$variable_level),
         .data$variable_name == "Acquired neutropenia or unspecified leukopenia" ~ "neutropenia_leukopenia",
         .data$variable_name == "Asthma without COPD"                            ~ "asthma_no_copd",
         .data$variable_name == "COVID-19"                                       ~ "covid",
@@ -424,8 +425,8 @@ cohortConstructorBenchmark <- function(cdm, iterations, logger) {
                   "time_minutes" = "time")
 
 
-  out <- subj |>
-    dplyr::left_join(inst, by = c("cdm_name", "iteration", "cohort_name")) |>
+  out <- inst |>
+    dplyr::left_join(subj, by = c("cdm_name", "iteration", "cohort_name")) |>
     dplyr::select("cdm_name", "iteration", "cohort_name",
                   "person_n", "time_minutes")
 

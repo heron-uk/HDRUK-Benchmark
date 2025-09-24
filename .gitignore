@@ -5,6 +5,8 @@
 Benchmark/Results/*.csv
 Benchmark/Results/*.txt
 Benchmark/Results/*.zip
+Benchmark/Results/sql_explain/*.sql
+Benchmark/Results/sql_logs/*.sql
 .DS_Store
 shiny/data/*.csv
 
