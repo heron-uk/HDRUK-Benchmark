@@ -11,18 +11,21 @@ update_input_choices <- function(session, input_id, choices) {
 
 filter_data <- function(data, input){
   
+  
   res <- data |>
-    visOmopResults::splitAll() 
-  
-  
-  res <- res |> omopgenerics::addSettings(settingsColumn = "result_type" ) |>
+    omopgenerics::filterSettings(grepl("benchmark", result_type)) |>
+    omopgenerics::addSettings(settingsColumn = "result_type" ) |>
     dplyr::mutate(result_type = dplyr::if_else(.data$result_type == "summarise_general_benchmark", "General benchmark", 
                                                dplyr::if_else(.data$result_type == "summarise_incidence_prevalence_benchmark", "IncidencePrevalence benchmark",
                                                               dplyr::if_else(.data$result_type == "summarise_cdm_connector_benchmark", "CDMConnector benchmark",
                                                                              dplyr::if_else(.data$result_type =="summarise_cohort_characteristics_benchmark","CohortCharacteristics benchmark",
                                                                                             dplyr::if_else(.data$result_type =="summarise_cohort_constructor_benchmark","CohortConstructor benchmark", 
-                                                                                                           dplyr::if_else(.data$result_type =="summarise_drug_utilisation_benchmark","DrugUtilisation benchmark", .data$result_type))))))) 
-  
+                                                                                                           dplyr::if_else(.data$result_type =="summarise_omop_constructor_benchmark","OmopConstructor benchmark",
+                                                                                                                          dplyr::if_else(.data$result_type =="summarise_drug_utilisation_benchmark","DrugUtilisation benchmark", .data$result_type)))))))) |>
+    omopgenerics::splitAll()
+    
+    
+    
   
   
   res <- res |> 
@@ -84,13 +87,15 @@ server <- function(input, output, session) {
   shiny::observe({
     
     res <- data |>
+      omopgenerics::filterSettings(grepl("benchmark", .data$result_type)) |>
       omopgenerics::addSettings(settingsColumn = "result_type" ) |>
       dplyr::mutate(result_type = dplyr::if_else(.data$result_type == "summarise_general_benchmark", "General benchmark", 
                                                  dplyr::if_else(.data$result_type == "summarise_incidence_prevalence_benchmark", "IncidencePrevalence benchmark",
                                                                 dplyr::if_else(.data$result_type == "summarise_cdm_connector_benchmark", "CDMConnector benchmark",
                                                                                dplyr::if_else(.data$result_type =="summarise_cohort_characteristics_benchmark","CohortCharacteristics benchmark",
                                                                                               dplyr::if_else(.data$result_type =="summarise_cohort_constructor_benchmark","CohortConstructor benchmark", 
-                                                                                                             dplyr::if_else(.data$result_type =="summarise_drug_utilisation_benchmark","DrugUtilisation benchmark", .data$result_type)))))))|> 
+                                                                                                             dplyr::if_else(.data$result_type =="summarise_omop_constructor_benchmark","OmopConstructor benchmark",
+                                                                                                                            dplyr::if_else(.data$result_type =="summarise_drug_utilisation_benchmark","DrugUtilisation benchmark", .data$result_type))))))))|> 
     
     
       visOmopResults::splitAll()

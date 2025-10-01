@@ -2,13 +2,13 @@
 
 This Shiny app presents the results of benchmarking analyses conducted across seven databases mapped to the OMOP Common Data Model:
 
-- **AurumCPRD**  
+- **CPRD Aurum **  
 - **Barts Health**  
-- **Edinburgh** (DataLoch C19)
+- **DataLoch**
 - **GOSH** (Great Ormond Street Hospital) 
 - **IDRIL_1** (Lancashire Teaching Hospitals)
 - **LTHT_OMOP** (Leeds Teaching Hospitals)
-- **UCLH-6months** (University College London Hospitals)
+- **UCLH** (University College London Hospitals)
 
 These benchmarking activities were carried out as part of the onboarding process for data partners joining the HERON-UK network, with the aim of assessing technical readiness and gaining insight into performance across environments.
 
@@ -25,7 +25,7 @@ These packages were tested for common queries and cohort-related operations acro
 - [**CDMConnector**](https://darwin-eu.github.io/CDMConnector/)
 - [**IncidencePrevalence**](https://darwin-eu.github.io/IncidencePrevalence/) 
 - [**CohortCharacteristics**](https://darwin-eu.github.io/CohortCharacteristics/) 
-
+- [**OmopConstructor**](https://ohdsi.github.io/OmopConstructor/)
 
 
 <br>

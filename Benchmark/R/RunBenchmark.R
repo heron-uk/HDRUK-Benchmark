@@ -80,6 +80,7 @@ CDMConnector::cdmDisconnect(cdm)
 
 # Zip the results
 omopgenerics::logMessage("ziping results")
+
 root_files <- list.files(
   outputFolder,
   pattern     = "\\.(csv|txt)$",
@@ -87,11 +88,6 @@ root_files <- list.files(
   full.names  = FALSE
 )
 
-resultLog <- omopgenerics::summariseLogFile(cdmName = dbName)
-omopgenerics::exportSummarisedResult(resultLog,
-                                     minCellCount = minCellCount,
-                                     path = outputFolder,
-                                     fileName = "log_benchmark_{cdm_name}_{date}.csv")
 
 # 2) All SQL files anywhere under outputFolder (keeps subfolder paths)
 sql_files <- list.files(
