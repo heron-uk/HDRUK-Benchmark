@@ -451,6 +451,12 @@
       "Maintainer": "Edward Burn <edward.burn@ndorms.ox.ac.uk>",
       "Repository": "RSPM"
     },
+    "OmopConstructor": {
+      "Package": "OmopConstructor",
+      "Version": "0.1.0",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "PatientProfiles": {
       "Package": "PatientProfiles",
       "Version": "1.4.2",
