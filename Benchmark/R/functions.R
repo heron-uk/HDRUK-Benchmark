@@ -231,8 +231,8 @@ generalBenchmark <- function(cdm, iterations) {
 
   res <- res |>
     dplyr::mutate(
-      dbms = attr(attr(cdm, "cdm_source"), "source_type"),
-      person_n = cdm$person |> dplyr::distinct(person_id) |> dplyr::tally() |> dplyr::pull()
+      dbms = omopgenerics::sourceType(cdm),
+      person_n = omopgenerics::numberSubjects(cdm$person)
     ) |>
     dplyr::mutate(
       result_id = 1L,
@@ -455,7 +455,8 @@ cohortConstructorBenchmark <- function(cdm, iterations) {
 
   out <- out |>
     dplyr::mutate(time_seconds = as.numeric(.data$time_minutes * 60L),
-                  dbms = attr(attr(cdm, "cdm_source"), "source_type")) |>
+                  dbms = omopgenerics::sourceType(cdm)
+                  ) |>
     tidyr::pivot_longer(
       cols = c(time_seconds, time_minutes),
       names_to = "estimate_name",
@@ -505,8 +506,8 @@ drugUtilisationBenchmark <- function(cdm, iterations) {
   res <- res |>
     omopgenerics::pivotEstimates() |>
     dplyr::mutate(time_minutes = as.numeric(.data$time_seconds / 60L),
-                  dbms = attr(attr(cdm, "cdm_source"), "source_type"),
-                  person_n = cdm$person |> dplyr::distinct(person_id) |> dplyr::tally() |> dplyr::pull(),
+                  dbms = omopgenerics::sourceType(cdm),
+                  person_n = omopgenerics::numberSubjects(cdm$person),
                   "strata_name" = "iteration") |>
     tidyr::pivot_longer(
       cols = c(time_seconds, time_minutes),
@@ -579,8 +580,7 @@ omopConstructorBenchmark <- function(cdm, iterations) {
       cdm = cdm,
       collapseDays = 365,
       persistenceDays = 364,
-      censorAge = 60,
-      dateRange = as.Date(c("1900-01-01", "2020-01-01"))
+      censorAge = 60
     ) |>
      suppressMessages()
     t <- tictoc::toc()
@@ -592,8 +592,8 @@ omopConstructorBenchmark <- function(cdm, iterations) {
 
   res <- res |>
     dplyr::mutate(
-      dbms = attr(attr(cdm, "cdm_source"), "source_type"),
-      person_n = cdm$person |> dplyr::distinct(person_id) |> dplyr::tally() |> dplyr::pull()
+      dbms = omopgenerics::sourceType(cdm),
+      person_n = omopgenerics::numberSubjects(cdm$person)
     ) |>
     dplyr::mutate(
       result_id = 1L,
