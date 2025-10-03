@@ -7,8 +7,9 @@ pkg_version <- "0.2.0"
 # create log file
 outputFolder <- here::here("Results")
 options(
-  omopgenerics.log_sql_path = paste0(outputFolder, "/sql_logs"),
-  omopgenerics.log_sql_explain_path = paste0(outputFolder, "/sql_explain")
+  omopgenerics.log_sql_path = paste0(outputFolder, "/sql_logs")
+  # ,
+  # omopgenerics.log_sql_explain_path = paste0(outputFolder, "/sql_explain")
 )
 log_file <- file.path(outputFolder, paste0("/log_", dbName, "_", format(Sys.time(), "%d_%m_%Y_%H_%M_%S"),".txt"))
 
